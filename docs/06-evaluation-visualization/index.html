@@ -125,43 +125,10 @@ def visualize_abmil_attention(patient_id, slide_id, attention, coords, patch_siz
     ax.imshow(thumb); ax.imshow(heat / heat.max(), cmap="jet", alpha=0.5)</code></pre>
   <p class="code-caption">notebooks/05_inference_evaluation.ipynb — ABMIL attention</p>
 
-  <h2>Encoder-internal attention</h2>
-  <p>ABMIL's attention shows which <em>patches</em> mattered; a forward hook on each encoder's
-  own last transformer block shows what mattered <em>inside</em> a single patch or MRI slice —
-  without changing the model at all.</p>
-  <div class="grid cols-2">
-    <div class="card">
-      <h3>WSI encoder</h3>
-      <p>A hook on H-optimus-0's last attention block recovers CLS-token-to-patch attention,
-      reshaped back into a spatial grid over the top-attended patch.</p>
-      <pre><code>def wsi_encoder_attention(wsi_model, patch_tensor, layer_idx=-1):
-    def hook(module, inp, out):
-        x = inp[0]
-        qkv = module.qkv(x).reshape(...).permute(2, 0, 3, 1, 4)
-        q, k, _ = qkv.unbind(0)
-        attn = (q @ k.transpose(-2, -1) * module.scale).softmax(dim=-1)
-        captured["attn"] = attn.detach()
-    handle = wsi_model.blocks[layer_idx].attn.register_forward_hook(hook)
-    ...
-    cls_to_patches = captured["attn"][0, :, 0, 1:].mean(dim=0)
-    return cls_to_patches.reshape(grid, grid).cpu().numpy()</code></pre>
-    </div>
-    <div class="card">
-      <h3>MRI encoder</h3>
-      <p>The same hook pattern applied to MRI-PTPCa's ViT transformer (<code>src/mri_ptpca.py</code>),
-      averaged over heads and overlaid on the T2W / ADC slice.</p>
-      <pre><code>attn_module = mri_model.myViT_MM.transformer.layers[layer_idx][0]
-handle = attn_module.register_forward_hook(hook)
-...
-return captured["attn"][0].mean(dim=0).cpu().numpy()  # (N, N) over heads</code></pre>
-    </div>
-  </div>
-
   <div class="callout">
-    All three visualizations — ABMIL heatmap, WSI-encoder attention, MRI-encoder attention —
-    answer a different question: <em>which patch</em>, <em>what inside that patch</em>, and
-    <em>what inside that MRI slice</em>. Together they turn a single risk score into a chain of
-    inspectable evidence.
+    The ABMIL heatmap turns a single risk score into inspectable evidence: <em>which patch</em>
+    the model actually weighted most heavily, overlaid directly on the slide a reviewer would
+    already be looking at.
   </div>
 
   <div id="page-nav-root" class="page-nav"></div>
