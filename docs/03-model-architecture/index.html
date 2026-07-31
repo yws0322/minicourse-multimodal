@@ -20,10 +20,16 @@
   those embeddings get combined — everything else (the pooling method, the prediction head) is
   held identical, so the comparison isolates the fusion mechanism itself.</p>
 
-  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/03_fusion_models.ipynb" target="_blank" rel="noopener">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open Fusion Models in Colab
-  </a>
+  <div class="colab-badges">
+    <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/02_feature_extraction.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+      Open Feature Extraction in Colab
+    </a>
+    <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/03_fusion_models.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+      Open Fusion Models in Colab
+    </a>
+  </div>
 
   <h2>Step 1 · Per-modality Encoders</h2>
   <div class="grid cols-3">
@@ -74,11 +80,6 @@ def extract_patch_embeddings(wsi_path, coords, patch_size, patch_level, model, t
   <p class="code-caption">notebooks/02_feature_extraction.ipynb — Step 1. Unlike deeper feature-aggregation
   schemes that pool several intermediate transformer layers, this course keeps it to one: the
   final block's embedding, per patch.</p>
-
-  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/02_feature_extraction.ipynb" target="_blank" rel="noopener">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open Feature Extraction in Colab
-  </a>
 
   <h2>Step 2 · MIL Pooling — ABMIL</h2>
   <p>A whole-slide image doesn't give the model one vector — it gives a <em>bag</em> of hundreds
