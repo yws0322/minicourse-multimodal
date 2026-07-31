@@ -231,8 +231,8 @@ test_df["fold"] = -1  # held out, never used for cross-validation</code></pre>
   <p class="code-caption">notebooks/01_data_preparation.ipynb — Step 6</p>
 
   <div class="callout">
-    Both labels feed both downstream tasks: <code>BCR</code> alone drives binary
-    <strong>classification</strong>, while <code>BCR</code> + <code>time_to_follow-up/BCR</code>
+    Both labels feed both downstream tasks: BCR alone drives binary
+    <strong>classification</strong>, while BCR + time_to_follow-up/BCR
     together drive censoring-aware <strong>survival analysis</strong> — see
     <a href="04-training-protocols.html">Training Protocols</a>.
   </div>
