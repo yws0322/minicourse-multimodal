@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08 · Conclusion — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="08"></script>
+
+<main>
+  <div class="eyebrow">08 · Conclusion</div>
+  <h1>What This Course Covered — and Where It Stops</h1>
+
+  <h2>The pipeline, end to end</h2>
+  <p>Starting from three raw data sources — gigapixel pathology slides, multiparametric MRI, and
+  structured clinical records — this course built a complete multimodal pipeline: tissue-aware
+  patch extraction and per-modality preprocessing, foundation-model encoders for imaging plus a
+  fixed-vector clinical encoder, three architecturally distinct fusion strategies sharing the
+  same pooling and head, a censoring-aware survival objective trained alongside ordinary binary
+  classification, slide-to-patient aggregation at inference time, and evaluation through both
+  numbers (AUROC, C-index) and visual evidence (Kaplan-Meier stratification, attention heatmaps).</p>
+
+  <h2>Key takeaways</h2>
+  <ul>
+    <li><strong>Fusion strategy is a real, measurable design choice</strong> — early, intermediate,
+    and late fusion make different assumptions about where modalities should interact, and
+    holding pooling/head capacity constant across all three isolates that choice from
+    everything else.</li>
+    <li><strong>Multi-instance data doesn't need multi-instance-aware models.</strong> Handling a
+    patient's variable number of WSI slides as independent training rows, then aggregating
+    predictions post-hoc, meant the fusion architectures themselves stayed simple.</li>
+    <li><strong>Censoring is information, not missing data.</strong> The discrete-time
+    negative log-likelihood loss uses censored patients' partial "survived at least this long"
+    signal directly, rather than discarding them.</li>
+    <li><strong>A single risk score isn't the end product.</strong> Post-processing — thresholds,
+    quantile-based risk groups — and visualization — attention heatmaps, KM curves — are what
+    turn a number into something a clinician (or a reviewer) can actually evaluate.</li>
+  </ul>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Cohort size.</strong> ~95 patients is small for deep multimodal fusion; every
+    architecture choice in this course (e.g. intermediate fusion's 256-dim shared space instead of
+    a much larger one) was made to keep parameter counts comparable and avoid overfitting on this
+    scale — a larger cohort would change those trade-offs.</li>
+    <li><strong>No layer-wise feature aggregation.</strong> Both imaging encoders use only their
+    final transformer block's embedding. Aggregating multiple intermediate layers can capture
+    complementary information a single layer misses, at the cost of extra complexity this course
+    deliberately avoided for clarity.</li>
+    <li><strong>Fixed decision thresholds and quantile splits.</strong> 0.5 for classification and
+    a 20% quantile for risk stratification are reasonable defaults, not tuned choices — a
+    deployed system would calibrate both against a held-out validation set.</li>
+    <li><strong>Single-institution data.</strong> All patients come from one challenge cohort;
+    generalization to other scanners, staining protocols, or patient populations is untested.</li>
+  </ul>
+
+  <h2>Where to go next</h2>
+  <ul>
+    <li>Try layer-wise feature aggregation for one encoder and compare against the single-layer
+    baseline used throughout this course.</li>
+    <li>Tune the classification threshold and risk-stratification quantile against a validation
+    split instead of using fixed defaults.</li>
+    <li>Extend to more modalities, or additional CHIMERA tasks, using the same fusion-comparison
+    structure.</li>
+    <li>Take the <a href="09-quiz.html">quiz</a> to check your understanding of the full pipeline.</li>
+  </ul>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="08"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Training Protocols — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="04"></script>
+
+<main>
+  <div class="eyebrow">04 · Training Protocols</div>
+  <h1>Training Three Fusion Strategies Across Two Tasks</h1>
+  <p class="lede">6 models to train — 3 fusion strategies × 2 tasks — each across every
+  cross-validation fold. The trickiest part isn't the training loop itself, it's how patients
+  with a variable number of WSI slides get turned into training rows.</p>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/04_train.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open notebook 04 in Colab
+  </a>
+
+  <h2>Slide-level training rows</h2>
+  <p>A patient can contribute 1 to 12 WSI slides. Rather than merging a patient's slides inside
+  the model, every slide becomes its own independent training row — that patient's label (and
+  MRI/clinical vectors) are simply copied onto each of their slides:</p>
+  <pre><code>class SlideLevelDataset(Dataset):
+    """One row per (patient, slide). A patient's MRI/clinical vectors and label are
+    repeated across every one of their slides."""
+    def __init__(self, patient_ids, labels_df):
+        self.labels_df = labels_df.set_index("patient_id")
+        self.rows = [
+            (patient_id, wsi_path)
+            for patient_id in patient_ids
+            for wsi_path in sorted(WSI_FEATURE_DIR.glob(f"{patient_id}_*_features.npy"))
+        ]
+
+    def __getitem__(self, idx):
+        patient_id, wsi_path = self.rows[idx]
+        label = self.labels_df.loc[patient_id]
+        return {
+            "patient_id": patient_id,
+            "wsi": torch.from_numpy(np.load(wsi_path)).float(),
+            "mri": torch.from_numpy(np.load(mri_path_for(patient_id))).float(),
+            "clinical": torch.from_numpy(np.load(clinical_path_for(patient_id))).float(),
+            "y_time": torch.tensor(label["time_to_follow-up/BCR"], dtype=torch.float32),
+            "y_event": torch.tensor(label["BCR"], dtype=torch.float32),
+        }</code></pre>
+  <p class="code-caption">notebooks/04_train.ipynb — Step 2. Training itself is entirely
+  slide-level; patient-level results only get computed later, at evaluation time — see
+  <a href="05-inference.html">Inference</a>.</p>
+
+  <div class="callout">
+    Because a patient's slides are independent rows sharing one label, the model architectures
+    in <a href="03-model-architecture.html">Model Architecture</a> need no multi-slide-specific
+    code at all — each still just takes one WSI bag per batch row, exactly as before.
+  </div>
+
+  <h2>The survival objective</h2>
+  <p>Classification trains with ordinary <code>BCEWithLogitsLoss</code>. Survival needs
+  something that can use <em>both</em> event patients and censored patients: continuous
+  follow-up time is first discretized into fixed-width bins, then a discrete-time negative
+  log-likelihood loss scores the observed bin's likelihood — the event-hazard term if BCR
+  occurred, the still-surviving term if the patient was censored.</p>
+  <pre><code>def discretize_time(time, num_bins, max_time, device):
+    """Bucket continuous follow-up time into `num_bins` equal-width bins."""
+    bins = torch.linspace(0, max_time, num_bins + 1, device=device)
+    discretized = torch.bucketize(time.to(device), bins, right=True) - 1
+    return torch.clamp(discretized, 0, num_bins - 1)
+
+class NLLLoss(nn.Module):
+    """Discrete-time negative log-likelihood survival loss: turns per-bin hazard logits
+    into a survival curve, and scores the observed time bin's likelihood."""
+    def forward(self, logits, y_time, y_event):
+        y_time, y_event = y_time.long().unsqueeze(1), y_event.long().unsqueeze(1)
+        hazards = torch.sigmoid(logits)
+        survival = torch.cumprod(1 - hazards, dim=1)
+        survival_padded = torch.cat([torch.ones_like(y_event, dtype=torch.float), survival], dim=1)
+
+        s_prev = torch.gather(survival_padded, 1, y_time).clamp(min=1e-7)
+        h_this = torch.gather(hazards, 1, y_time).clamp(min=1e-7)
+        log_lik_event = torch.log(s_prev) + torch.log(h_this)
+
+        y_time_next = torch.clamp(y_time + 1, 0, logits.shape[1])
+        log_lik_censored = torch.log(torch.gather(survival_padded, 1, y_time_next).clamp(min=1e-7))
+
+        neg_log_lik = -(y_event * log_lik_event + (1 - y_event) * log_lik_censored)
+        return neg_log_lik.mean()</code></pre>
+  <p class="code-caption">src/fusion_models.py</p>
+
+  <h2>The training loop</h2>
+  <p>All 3 fusion strategies × 2 tasks × every CV fold are trained the same way — Adam, a fixed
+  learning rate, and the best-val-loss checkpoint kept per (fusion, task, fold):</p>
+  <pre><code>FUSION_CLASSES = {"early": EarlyFusionModel, "intermediate": IntermediateFusionModel, "late": LateFusionModel}
+TASKS = ["classification", "survival"]
+NUM_TIME_BINS, BATCH_SIZE, NUM_EPOCHS, LEARNING_RATE = 15, 8, 30, 1e-4
+
+def run_epoch(model, loader, task, optimizer=None):
+    """One pass over `loader`. Trains when `optimizer` is given, otherwise just evaluates."""
+    model.train() if optimizer is not None else model.eval()
+    losses = []
+    for batch in loader:
+        batch = move_batch_to_device(batch, DEVICE)
+        with torch.set_grad_enabled(optimizer is not None):
+            out = model(batch)
+            loss = compute_loss(out, batch, task)
+        if optimizer is not None:
+            optimizer.zero_grad(); loss.backward(); optimizer.step()
+        losses.append(loss.item())
+    return sum(losses) / len(losses)
+
+for fusion_name, ModelClass in FUSION_CLASSES.items():
+    for task in TASKS:
+        for fold in folds:
+            train_loader, val_loader = build_fold_loaders(fold)  # split by "fold" column
+            model = ModelClass(task=task, num_time_bins=NUM_TIME_BINS).to(DEVICE)
+            optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+            best_val_loss = float("inf")
+            for epoch in range(NUM_EPOCHS):
+                train_loss = run_epoch(model, train_loader, task, optimizer)
+                val_loss = run_epoch(model, val_loader, task, optimizer=None)
+                if val_loss &lt; best_val_loss:
+                    best_val_loss = val_loss
+                    save_checkpoint(model, fusion_name, task, fold, epoch, val_loss)</code></pre>
+  <p class="code-caption">notebooks/04_train.ipynb — Step 3. 3 × 2 × 5 folds = 30 checkpoints,
+  one per (fusion, task, fold) combination.</p>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="04"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

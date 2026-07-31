@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multimodal Survival Prediction — Minicourse</title>
+<meta name="description" content="A step-by-step minicourse on multimodal (WSI + mpMRI + clinical) deep learning for prostate cancer disease classification and survival prediction.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active=""></script>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">Minicourse</div>
+    <h1>A Practical Guide to Multimodal Learning<br>for Disease Classification &amp; Survival Prediction</h1>
+    <p class="subtitle">Whole-slide pathology + mpMRI + clinical records, fused three different ways,<br>
+    to predict prostate cancer biochemical recurrence.</p>
+  </div>
+
+  <p class="lede">
+    This course walks through an entire multimodal pipeline end to end: preparing three very
+    different data modalities, building encoders for each, comparing three ways of fusing them,
+    training with a censoring-aware survival objective, and evaluating with the visualizations
+    that make a model's predictions inspectable rather than opaque. Every section pairs a
+    written explanation with the real, runnable code behind it, and links to a companion
+    notebook you can open directly in Colab.
+  </p>
+
+  <div class="card">
+    <strong>Dataset &amp; task:</strong> <a href="https://chimera.grand-challenge.org/" target="_blank" rel="noopener">CHIMERA challenge</a>,
+    Task 1 — predicting biochemical recurrence (BCR) after prostatectomy from H&amp;E whole-slide
+    images, multiparametric MRI, and structured clinical records, ~95 patients.
+  </div>
+
+  <h2>Course Contents</h2>
+  <ul class="toc-list">
+    <li><a href="01-background.html"><span class="toc-num">01</span><span class="toc-body"><strong>Background</strong><span>What each modality sees, why combine them, classification vs. survival framing</span></span></a></li>
+    <li><a href="02-data-preparation.html"><span class="toc-num">02</span><span class="toc-body"><strong>Data Preparation</strong><span>Tissue detection, patch extraction, mpMRI &amp; clinical preprocessing, label/split prep</span></span></a></li>
+    <li><a href="03-model-architecture.html"><span class="toc-num">03</span><span class="toc-body"><strong>Model Architecture</strong><span>Per-modality encoders, ABMIL pooling, and three fusion strategies side by side</span></span></a></li>
+    <li><a href="04-training-protocols.html"><span class="toc-num">04</span><span class="toc-body"><strong>Training Protocols</strong><span>Slide-level training rows, discrete-time survival loss, cross-validation</span></span></a></li>
+    <li><a href="05-inference.html"><span class="toc-num">05</span><span class="toc-body"><strong>Inference</strong><span>Running trained models and aggregating slide-level output back to the patient level</span></span></a></li>
+    <li><a href="06-postprocessing.html"><span class="toc-num">06</span><span class="toc-body"><strong>Post-processing</strong><span>Decision thresholds and risk-group stratification</span></span></a></li>
+    <li><a href="07-evaluation-visualization.html"><span class="toc-num">07</span><span class="toc-body"><strong>Evaluation &amp; Visualization</strong><span>AUROC/C-index comparisons, Kaplan-Meier curves, attention heatmaps</span></span></a></li>
+    <li><a href="08-conclusion.html"><span class="toc-num">08</span><span class="toc-body"><strong>Conclusion</strong><span>Takeaways, limitations, and where to go next</span></span></a></li>
+    <li><a href="09-quiz.html"><span class="toc-num">09</span><span class="toc-body"><strong>Quiz</strong><span>Check your understanding</span></span></a></li>
+  </ul>
+
+  <h2>Notebooks</h2>
+  <p>Each stage of the pipeline has a companion Jupyter notebook you can run yourself — open the raw
+  source on GitHub, or launch it directly in Colab from the section pages.</p>
+  <div class="grid cols-3">
+    <div class="card"><span class="tag">00</span><strong>Environment Setup</strong></div>
+    <div class="card"><span class="tag">01</span><strong>Data Preparation</strong></div>
+    <div class="card"><span class="tag">02</span><strong>Feature Extraction</strong></div>
+    <div class="card"><span class="tag">03</span><strong>Fusion Models</strong></div>
+    <div class="card"><span class="tag">04</span><strong>Training</strong></div>
+    <div class="card"><span class="tag">05</span><strong>Inference &amp; Evaluation</strong></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

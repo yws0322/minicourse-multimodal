@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>07 · Evaluation & Visualization — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="07"></script>
+
+<main>
+  <div class="eyebrow">07 · Evaluation &amp; Visualization</div>
+  <h1>Comparing Strategies, and Making Predictions Inspectable</h1>
+  <p class="lede">Numbers alone (AUROC, C-index) tell you which fusion strategy wins. Visualization
+  is what lets you check <em>why</em> — whether a model is looking at the right tissue, and
+  whether its risk groups actually separate in a way that matches clinical intuition.</p>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/05_inference_evaluation.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open notebook 05 in Colab
+  </a>
+
+  <h2>Comparing fusion strategies</h2>
+  <p>Every (fusion, task) pair's out-of-fold metric from <a href="05-inference.html">Inference</a>
+  side by side:</p>
+  <pre><code>fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
+for ax, task, metric_name in zip(axes, ["classification", "survival"], ["AUROC", "C-index"]):
+    subset = comparison_df[comparison_df["task"] == task]
+    ax.bar(subset["fusion"], subset["value"], color=["#4FA3F0", "#7ec9a3", "#e0a03a"])
+    ax.set_title(f"{task.capitalize()} ({metric_name})")
+    ax.set_ylim(0.4, 1.0)
+    ax.axhline(0.5, color="gray", linestyle="--", linewidth=1)  # random-chance baseline
+    ax.grid(axis="y", alpha=0.3)</code></pre>
+  <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Step 5. Because
+  <a href="03-model-architecture.html">every strategy shares its pooling method and head
+  architecture</a>, differences here are attributable to the fusion mechanism itself.</p>
+
+  <h2>Kaplan-Meier risk stratification</h2>
+  <p>For the best-performing survival model, the high/low risk groups from
+  <a href="06-postprocessing.html">post-processing</a> get their own survival curves — with
+  confidence bands and a log-rank test for whether the two groups are statistically distinguishable:</p>
+  <pre><code>def km_with_ci(times, events, timeline):
+    kmf = KaplanMeierFitter()
+    kmf.fit(times, events)
+    surv = kmf.survival_function_at_times(timeline).to_numpy()
+    ci = kmf.confidence_interval_.reindex(...).ffill().reindex(timeline)
+    return surv, ci.iloc[:, 0].to_numpy(), ci.iloc[:, 1].to_numpy()
+
+surv_lo, lo_lo, lo_hi = km_with_ci(low["y_time"], low["y_event"], timeline)
+surv_hi, hi_lo, hi_hi = km_with_ci(high["y_time"], high["y_event"], timeline)
+p_value = logrank_test(low["y_time"], high["y_time"], low["y_event"], high["y_event"]).p_value
+
+ax.plot(timeline, surv_lo, color="#4FA3F0", label="Low risk")
+ax.fill_between(timeline, lo_lo, lo_hi, color="#4FA3F0", alpha=0.2)
+ax.plot(timeline, surv_hi, color="#e05a5a", label="High risk")
+ax.fill_between(timeline, hi_lo, hi_hi, color="#e05a5a", alpha=0.2)
+ax.set_title(f"log-rank p = {p_value:.2e}")</code></pre>
+  <p>A small p-value here means the model's risk score isn't just ranking patients correctly on
+  average (which C-index already measures) — the two groups it produces have visibly different,
+  statistically distinguishable survival curves.</p>
+
+  <h2>ABMIL attention — which patches drove the prediction?</h2>
+  <p>The same attention weights ABMIL used to pool a WSI's patches into one vector double as an
+  interpretability signal. Overlaying them back onto the slide thumbnail shows which regions the
+  model actually weighted most heavily:</p>
+  <pre><code>@torch.no_grad()
+def extract_abmil_attention(model, wsi_features):
+    attn_scores = model.abmil.attention(wsi_features.to(DEVICE))
+    return torch.softmax(attn_scores, dim=0).squeeze(1).cpu().numpy()
+
+def visualize_abmil_attention(patient_id, slide_id, attention, coords, patch_size=224):
+    slide = openslide.OpenSlide(str(wsi_path_for(patient_id, slide_id)))
+    thumb = slide.get_thumbnail((thumb_w, thumb_h))
+    heat = np.zeros((thumb.height, thumb.width), dtype=np.float32)
+    for (x, y), score in zip(coords, attention):
+        xt, yt = int(x * scale), int(y * scale)
+        heat[yt:yt + int(patch_size * scale), xt:xt + int(patch_size * scale)] = score
+    heat = gaussian_filter(heat, sigma=max(1, int(max(heat.shape) * 0.01)))
+    ax.imshow(thumb); ax.imshow(heat / heat.max(), cmap="jet", alpha=0.5)</code></pre>
+  <p class="code-caption">notebooks/05_inference_evaluation.ipynb — ABMIL attention</p>
+
+  <h2>Encoder-internal attention</h2>
+  <p>ABMIL's attention shows which <em>patches</em> mattered; a forward hook on each encoder's
+  own last transformer block shows what mattered <em>inside</em> a single patch or MRI slice —
+  without changing the model at all.</p>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>WSI encoder</h3>
+      <p>A hook on H-optimus-0's last attention block recovers CLS-token-to-patch attention,
+      reshaped back into a spatial grid over the top-attended patch.</p>
+      <pre><code>def wsi_encoder_attention(wsi_model, patch_tensor, layer_idx=-1):
+    def hook(module, inp, out):
+        x = inp[0]
+        qkv = module.qkv(x).reshape(...).permute(2, 0, 3, 1, 4)
+        q, k, _ = qkv.unbind(0)
+        attn = (q @ k.transpose(-2, -1) * module.scale).softmax(dim=-1)
+        captured["attn"] = attn.detach()
+    handle = wsi_model.blocks[layer_idx].attn.register_forward_hook(hook)
+    ...
+    cls_to_patches = captured["attn"][0, :, 0, 1:].mean(dim=0)
+    return cls_to_patches.reshape(grid, grid).cpu().numpy()</code></pre>
+    </div>
+    <div class="card">
+      <h3>MRI encoder</h3>
+      <p>The same hook pattern applied to MRI-PTPCa's ViT transformer (<code>src/mri_ptpca.py</code>),
+      averaged over heads and overlaid on the T2W / ADC slice.</p>
+      <pre><code>attn_module = mri_model.myViT_MM.transformer.layers[layer_idx][0]
+handle = attn_module.register_forward_hook(hook)
+...
+return captured["attn"][0].mean(dim=0).cpu().numpy()  # (N, N) over heads</code></pre>
+    </div>
+  </div>
+
+  <div class="callout">
+    All three visualizations — ABMIL heatmap, WSI-encoder attention, MRI-encoder attention —
+    answer a different question: <em>which patch</em>, <em>what inside that patch</em>, and
+    <em>what inside that MRI slice</em>. Together they turn a single risk score into a chain of
+    inspectable evidence.
+  </div>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="07"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

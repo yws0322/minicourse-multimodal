@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09 · Quiz — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="09"></script>
+
+<main>
+  <div class="eyebrow">09 · Quiz</div>
+  <h1>Check Your Understanding</h1>
+  <p class="lede">10 questions covering the whole pipeline. Answers are scored entirely in your
+  browser — nothing is sent anywhere.</p>
+
+  <div id="quiz-score"></div>
+  <form id="quiz-form"></form>
+  <button id="quiz-submit" type="button">Check answers</button>
+  <button id="quiz-reset" type="button">Reset</button>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="09"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+
+<script>
+var QUESTIONS = [
+  {
+    q: "What does a censored patient in the survival dataset tell the model?",
+    opts: [
+      "Nothing — censored patients should be dropped before training",
+      "That the event had already happened, just not recorded",
+      "That the patient survived at least until their last recorded follow-up time",
+      "That the patient is guaranteed to be low risk",
+    ],
+    correct: 2,
+  },
+  {
+    q: "Why is each 256×256 (well, 224×224) WSI patch filtered by tissue coverage before feature extraction?",
+    opts: [
+      "To reduce the number of files stored on disk",
+      "Because patches that are mostly background glass carry no useful signal",
+      "Because the encoder cannot process patches with any background pixels",
+      "To balance the number of patches across patients",
+    ],
+    correct: 1,
+  },
+  {
+    q: "In the clinical feature encoding, why are fields like lymphovascular invasion one-hot encoded into 3 categories (0 / 1 / unknown) instead of 2?",
+    opts: [
+      "To match the WSI feature dimensionality",
+      "Because some patients have missing/unrecorded values that shouldn't be silently treated as 0 or 1",
+      "It's required by BatchNorm",
+      "To make the feature vector exactly 1536-dimensional",
+    ],
+    correct: 1,
+  },
+  {
+    q: "What does ABMIL attention weight, exactly?",
+    opts: [
+      "Each modality's overall contribution to the final prediction",
+      "Each transformer layer's contribution to the patch embedding",
+      "Each patch within one WSI's bag, when pooling it into a single bag-level vector",
+      "Each training epoch's contribution to the loss",
+    ],
+    correct: 2,
+  },
+  {
+    q: "Early, intermediate, and late fusion in this course all share which two components?",
+    opts: [
+      "The optimizer and the learning rate schedule",
+      "The ABMIL pooling module and the prediction head architecture",
+      "The clinical feature encoder and the loss function",
+      "The number of training epochs and the batch size",
+    ],
+    correct: 1,
+  },
+  {
+    q: "Why does intermediate fusion use a shared dimension of 256 instead of a much larger one?",
+    opts: [
+      "256 is the clinical feature vector's length",
+      "Larger shared dimensions are not supported by nn.MultiheadAttention",
+      "To keep its parameter count comparable to early/late fusion on a small (~95-patient) cohort",
+      "It matches the WSI patch size",
+    ],
+    correct: 2,
+  },
+  {
+    q: "How are a patient's multiple WSI slides handled during training?",
+    opts: [
+      "Only the first slide per patient is used, the rest are discarded",
+      "All slides are averaged into one feature vector before training",
+      "Each slide becomes its own training row, sharing that patient's label",
+      "A separate model is trained per slide count",
+    ],
+    correct: 2,
+  },
+  {
+    q: "At inference time, how are a patient's slide-level predictions combined for the survival task?",
+    opts: [
+      "Mean of the raw hazard logits",
+      "Mean of the per-slide risk scores",
+      "Only the highest-risk slide is kept",
+      "Majority vote on a binarized risk score",
+    ],
+    correct: 1,
+  },
+  {
+    q: "What does a small log-rank p-value between the high-risk and low-risk Kaplan-Meier curves indicate?",
+    opts: [
+      "The model's C-index is exactly 1.0",
+      "The two risk groups have statistically distinguishable survival curves",
+      "The model is overfitting",
+      "The dataset has no censored patients",
+    ],
+    correct: 1,
+  },
+  {
+    q: "Why is risk stratification done with a quantile split rather than a fixed risk-score cutoff?",
+    opts: [
+      "Quantile splits are faster to compute",
+      "Raw risk scores aren't on a shared, calibrated scale across models, but relative ranking is what the model is optimized for",
+      "A fixed cutoff would require retraining the model",
+      "It avoids having to compute the concordance index",
+    ],
+    correct: 1,
+  },
+];
+
+var form = document.getElementById("quiz-form");
+form.innerHTML = QUESTIONS.map(function (item, qi) {
+  var opts = item.opts.map(function (opt, oi) {
+    return '<li><label id="opt-' + qi + '-' + oi + '"><input type="radio" name="q' + qi + '" value="' + oi + '">' + opt + "</label></li>";
+  }).join("");
+  return '<div class="quiz-q"><p class="question">' + (qi + 1) + ". " + item.q + '</p><ul class="quiz-opts">' + opts + "</ul></div>";
+}).join("");
+
+document.getElementById("quiz-submit").addEventListener("click", function () {
+  var correctCount = 0;
+  QUESTIONS.forEach(function (item, qi) {
+    var chosen = form.querySelector('input[name="q' + qi + '"]:checked');
+    for (var oi = 0; oi < item.opts.length; oi++) {
+      document.getElementById("opt-" + qi + "-" + oi).classList.remove("correct", "incorrect");
+    }
+    if (chosen) {
+      var oi = parseInt(chosen.value, 10);
+      if (oi === item.correct) {
+        correctCount++;
+        document.getElementById("opt-" + qi + "-" + oi).classList.add("correct");
+      } else {
+        document.getElementById("opt-" + qi + "-" + oi).classList.add("incorrect");
+        document.getElementById("opt-" + qi + "-" + item.correct).classList.add("correct");
+      }
+    } else {
+      document.getElementById("opt-" + qi + "-" + item.correct).classList.add("correct");
+    }
+  });
+  document.getElementById("quiz-score").textContent = "Score: " + correctCount + " / " + QUESTIONS.length;
+});
+
+document.getElementById("quiz-reset").addEventListener("click", function () {
+  form.reset();
+  document.getElementById("quiz-score").textContent = "";
+  document.querySelectorAll(".quiz-opts label").forEach(function (el) {
+    el.classList.remove("correct", "incorrect");
+  });
+});
+</script>
+</body>
+</html>

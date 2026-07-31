@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · Inference — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="05"></script>
+
+<main>
+  <div class="eyebrow">05 · Inference</div>
+  <h1>From Slide-Level Output Back to a Patient</h1>
+  <p class="lede">Every checkpoint from <a href="04-training-protocols.html">training</a> was
+  optimized slide-by-slide. Inference has to do the reverse: run the model over a patient's
+  slides, then merge those predictions back into one answer for that patient.</p>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/05_inference_evaluation.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open notebook 05 in Colab
+  </a>
+
+  <h2>Step 1 · Run inference over held-out slides</h2>
+  <p>The dataset shape is identical to training — one row per (patient, slide) — but now it's a
+  pure forward pass, with <code>patient_id</code> carried through so predictions can be regrouped
+  afterwards:</p>
+  <pre><code>@torch.no_grad()
+def run_inference(model, loader, task: str) -> pd.DataFrame:
+    """One row per slide: patient_id, ground truth, and the model's raw output."""
+    model.eval()
+    rows = []
+    for batch in loader:
+        wsi = [w.to(DEVICE) for w in batch["wsi"]]
+        out = model({"wsi": wsi, "mri": batch["mri"].to(DEVICE), "clinical": batch["clinical"].to(DEVICE)})
+        for i, patient_id in enumerate(batch["patient_id"]):
+            row = {"patient_id": patient_id, "y_time": batch["y_time"][i].item(), "y_event": batch["y_event"][i].item()}
+            if task == "classification":
+                row["slide_prob"] = torch.sigmoid(out[i]).item()
+            else:
+                hazards = torch.sigmoid(out[i])
+                survival = torch.cumprod(1 - hazards, dim=0)
+                row["slide_risk"] = -survival.sum().item()
+            rows.append(row)
+    return pd.DataFrame(rows)</code></pre>
+  <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Step 1</p>
+
+  <h2>Step 2 · Aggregate slide-level predictions to patient level</h2>
+  <p>The aggregation rule differs by task, and deliberately works on <strong>probabilities and
+  risk scores, never raw logits</strong> — averaging a hazard logit isn't meaningful the way
+  averaging a probability or a risk score is:</p>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Classification</h3>
+      <p>Mean predicted probability across a patient's slides, plus a majority vote for the hard
+      label.</p>
+    </div>
+    <div class="card">
+      <h3>Survival</h3>
+      <p>Mean predicted risk score across a patient's slides.</p>
+    </div>
+  </div>
+  <pre><code>def aggregate_classification(slide_preds: pd.DataFrame) -> pd.DataFrame:
+    return slide_preds.groupby("patient_id").agg(
+        y_event=("y_event", "first"),
+        mean_prob=("slide_prob", "mean"),
+        majority_vote=("slide_prob", lambda p: float((p > 0.5).mean() > 0.5)),
+    ).reset_index()
+
+def aggregate_survival(slide_preds: pd.DataFrame) -> pd.DataFrame:
+    return slide_preds.groupby("patient_id").agg(
+        y_time=("y_time", "first"), y_event=("y_event", "first"),
+        mean_risk=("slide_risk", "mean"),
+    ).reset_index()</code></pre>
+  <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Step 2</p>
+
+  <h2>Step 3 · Metrics</h2>
+  <p>With one row per patient, AUROC and the concordance index are computed exactly as usual:</p>
+  <pre><code>def evaluate_classification(patient_preds):
+    return roc_auc_score(patient_preds["y_event"], patient_preds["mean_prob"])
+
+def evaluate_survival(patient_preds):
+    return concordance_index(patient_preds["y_time"], patient_preds["mean_risk"], patient_preds["y_event"])</code></pre>
+
+  <h2>Step 4 · Out-of-fold evaluation</h2>
+  <p>Every fold's checkpoint is scored <em>only</em> on the patients it never trained on — its
+  own validation fold — before all folds' patients are combined into one overall metric per
+  (fusion, task) pair. This is what makes the final numbers in
+  <a href="07-evaluation-visualization.html">Evaluation &amp; Visualization</a> trustworthy
+  rather than optimistic.</p>
+
+  <div class="callout">
+    This out-of-fold, patient-level table is also the input to
+    <a href="06-postprocessing.html">Post-processing</a> — thresholds and risk groups are
+    computed downstream of these aggregated predictions, never on raw slide-level output.
+  </div>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="05"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

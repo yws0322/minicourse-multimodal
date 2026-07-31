@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · Data Preparation — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="02"></script>
+
+<main>
+  <div class="eyebrow">02 · Data Preparation</div>
+  <h1>Turning Raw Scans and Records into Model Inputs</h1>
+  <p class="lede">The dataset is the CHIMERA challenge's Task 1 cohort: ~95 prostate cancer
+  patients, each with H&amp;E whole-slide images, multiparametric MRI, and a structured
+  clinical record, labeled for biochemical recurrence (BCR).</p>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/01_data_preparation.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open notebook 01 in Colab
+  </a>
+
+  <h2>Folder Structure</h2>
+  <pre><code>task1/
+├── clinical_data/            # one JSON per patient
+├── pathology/
+│   └── images/{patient_id}/{patient_id}_{slide}.tif   # 195 slides, H&amp;E, SVS/TIFF
+└── radiology/
+    └── images/{patient_id}/{patient_id}_0001_{t2w,adc,hbv,mask}.mha</code></pre>
+  <p>Patients contribute a variable number of whole-slide images — anywhere from 1 to 12 slides
+  each — so slide count, not patient count, is the true unit of the pathology data.</p>
+
+  <h2>Whole Slide Images</h2>
+  <ul>
+    <li>195 images total (multiple slides per patient)</li>
+    <li>H&amp;E stained</li>
+    <li>SVS / pyramidal TIFF format, gigapixel resolution</li>
+  </ul>
+
+  <h3>Step 1 · Tissue Detection</h3>
+  <p>A WSI is mostly empty background glass — before extracting patches, we first need a mask of
+  where the actual tissue is:</p>
+  <ol>
+    <li><strong>Read a thumbnail</strong> — load the WSI at low magnification.</li>
+    <li><strong>Grayscale conversion.</strong></li>
+    <li><strong>Otsu threshold</strong> — automatically pick the threshold that best separates the
+    bimodal histogram of tissue vs. background.</li>
+    <li><strong>Morphological operations</strong> — dilation and erosion to close small holes in
+    the tissue mask.</li>
+    <li><strong>Upscale the mask</strong> — from thumbnail resolution back up to full WSI resolution.</li>
+  </ol>
+
+  <h3>Step 2 · Patch Extraction (Tiling)</h3>
+  <ul>
+    <li><strong>Patch size:</strong> 224×224 (matches the WSI encoder's expected input — see <a href="03-model-architecture.html">Model Architecture</a>)</li>
+    <li><strong>Stride:</strong> non-overlapping</li>
+    <li><strong>Tissue coverage filter:</strong> for each candidate patch, compute the fraction of
+    pixels inside the tissue mask, and discard it if coverage &lt; 20%</li>
+  </ul>
+
+  <pre><code>def extract_patch_coords(
+    wsi_path, tissue_mask_path=None,
+    patch_level=0, patch_size=224, patch_stride=224, min_tissue_ratio=0.2,
+):
+    """Find top-left (x, y) coordinates of tissue-containing patches in a WSI."""
+    slide = openslide.OpenSlide(str(wsi_path))
+    width, height = slide.level_dimensions[patch_level]
+    tissue_mask = np.array(Image.open(tissue_mask_path).convert("L")) if tissue_mask_path else None
+
+    coords = []
+    for y in range(0, height - patch_size + 1, patch_stride):
+        for x in range(0, width - patch_size + 1, patch_stride):
+            if tissue_mask is not None:
+                scale_x = tissue_mask.shape[1] / width
+                scale_y = tissue_mask.shape[0] / height
+                mx, my = int(x * scale_x), int(y * scale_y)
+                mw, mh = max(1, int(patch_size * scale_x)), max(1, int(patch_size * scale_y))
+                region = tissue_mask[my:my + mh, mx:mx + mw]
+                if region.size == 0 or (region > 0).mean() &lt; min_tissue_ratio:
+                    continue
+            coords.append((x, y))
+    slide.close()
+    return np.array(coords, dtype=np.int64)</code></pre>
+  <p class="code-caption">notebooks/01_data_preparation.ipynb — Step 4</p>
+
+  <h3>Toolbox</h3>
+  <p>A few open-source libraries cover most of this pipeline in practice — this course
+  implements tissue detection and tiling directly with OpenSlide so every step stays visible,
+  but these are worth knowing:</p>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3><a href="https://github.com/mahmoodlab/CLAM" target="_blank" rel="noopener">CLAM</a></h3>
+      <p>End-to-end WSI pipeline (tissue segmentation, patching, feature extraction, and
+      attention-based MIL classification) built for computational pathology, from the Mahmood Lab.</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://github.com/mahmoodlab/TRIDENT" target="_blank" rel="noopener">TRIDENT</a></h3>
+      <p>A more recent slide-processing toolkit focused on fast tissue segmentation and patch
+      feature extraction with modern foundation models (e.g. UNI, H-optimus-0).</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://github.com/TissueImageAnalytics/tiatoolbox" target="_blank" rel="noopener">TIAToolbox</a></h3>
+      <p>A general-purpose computational pathology toolbox from the TIA Centre — slide I/O, tissue
+      masking, patch extraction, and a library of pretrained models for common WSI tasks.</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://openslide.org/" target="_blank" rel="noopener">OpenSlide</a></h3>
+      <p>The underlying C library (and Python bindings) most of the above are built on — reads
+      pyramidal whole-slide formats (SVS, TIFF, MRXS, ...) and provides thumbnail/region access
+      at any magnification level. This course uses it directly, via the pure-Python
+      <code>openslide-bin</code> wheel.</p>
+    </div>
+  </div>
+
+  <h2>mpMRI</h2>
+  <p>Each patient has <strong>3 sequences</strong> per scan:</p>
+  <ul>
+    <li><strong>T2W</strong> — T2-weighted anatomical imaging</li>
+    <li><strong>ADC</strong> — apparent diffusion coefficient map, sensitive to tissue cellularity</li>
+    <li><strong>HBV</strong> — high-b-value diffusion-weighted imaging, the third channel the MRI
+    encoder expects</li>
+  </ul>
+  <p>Most scans also ship a prostate segmentation <strong>mask</strong>, used to crop each volume
+  down to the relevant anatomy before it reaches the model.</p>
+
+  <h3>mpMRI Preprocessing</h3>
+  <p>Each series goes through the same pipeline before feature extraction:</p>
+  <ol>
+    <li><strong>Mask-guided crop</strong> — crop the volume to the bounding box of the prostate mask.</li>
+    <li><strong>Resample</strong> — resize (trilinear interpolation) to a fixed <code>(16, 200, 200)</code> volume.</li>
+    <li><strong>Histogram equalization</strong> — per-slice, to normalize contrast across scanners.</li>
+    <li><strong>Min-max then z-score normalization</strong>, computed over the masked region only.</li>
+  </ol>
+  <pre><code>def preprocess_mri_scan(mri_path, mask_path=None, img_size=(16, 200, 200)):
+    data = sitk.GetArrayFromImage(sitk.ReadImage(str(mri_path))).astype(np.float32)
+
+    if mask_path and Path(mask_path).exists():
+        mask_data = sitk.GetArrayFromImage(sitk.ReadImage(str(mask_path)))
+        nonzero = np.nonzero(mask_data > 0)
+        (z0, z1), (y0, y1), (x0, x1) = [(a.min(), a.max() + 1) for a in nonzero]
+        data = data[z0:z1, y0:y1, x0:x1]          # crop to prostate mask bounding box
+
+    data = resample_to(data, img_size)             # trilinear interpolation
+    data = histogram_balance(data, gray_level=65535)
+    data = min_max_normalize(data)                  # -> [-1, 1] over the masked region
+    data = z_score_normalize(data)                  # zero mean, unit variance
+    return to_tensor(data)                          # (1, D, 3, H, W), channel repeated for the ViT</code></pre>
+  <p class="code-caption">notebooks/02_feature_extraction.ipynb — Step 2 (see <a href="03-model-architecture.html">Model Architecture</a> for how this feeds the MRI encoder)</p>
+
+  <h2>Clinical Data</h2>
+  <p>Each patient's clinical record is a JSON of structured fields: demographics, Gleason
+  scores, ISUP grade, PSA, staging, prior therapy, and pathology findings.</p>
+
+  <h3>Clinical Data Preprocessing</h3>
+  <p>Every patient needs a fixed-length, fixed-order feature vector, so categorical fields are
+  one-hot encoded and numeric fields pass through directly:</p>
+  <pre><code>FEATURE_ORDER = [
+    "age_at_prostatectomy", "primary_gleason", "secondary_gleason",
+    "tertiary_gleason", "ISUP", "pre_operative_PSA", "pT_stage_numeric",
+    "earlier_therapy_none", "earlier_therapy_cryo", "earlier_therapy_hormones",
+    "positive_lymph_nodes_0", "positive_lymph_nodes_1", "positive_lymph_nodes_x",
+    "capsular_penetration_0", "capsular_penetration_1", "capsular_penetration_x",
+    "lymphovascular_invasion_0", "lymphovascular_invasion_1", "lymphovascular_invasion_x",
+    "positive_surgical_margins_0", "positive_surgical_margins_1", "positive_surgical_margins_x",
+]  # 22 features total -- every patient gets exactly this vector layout
+
+def preprocess_clinical_data(data: dict) -> np.ndarray:
+    """Convert one patient's clinical dict into a FEATURE_ORDER-shaped float32 vector."""
+    item = dict(data)
+    if "pT_stage" in item:
+        digits = "".join(filter(str.isdigit, str(item["pT_stage"])))
+        item["pT_stage_numeric"] = float(digits) if digits else 0.0
+    if "earlier_therapy" in item:
+        therapy = item["earlier_therapy"]
+        item["earlier_therapy_none"] = float(therapy == "none")
+        item["earlier_therapy_cryo"] = float(therapy == "radiotherapy + cryotherapy")
+        item["earlier_therapy_hormones"] = float(therapy == "radiotherapy + hormones")
+    for field in ONE_HOT_BINARY_FIELDS:  # lymph nodes, capsular penetration, LVI, margins
+        value = str(item.get(field, "")).lower().strip()
+        is_0, is_1 = value in ("0", "0.0"), value in ("1", "1.0")
+        item[f"{field}_0"], item[f"{field}_1"], item[f"{field}_x"] = float(is_0), float(is_1), float(not is_0 and not is_1)
+
+    return np.array([float(item.get(name, 0.0)) for name in FEATURE_ORDER], dtype=np.float32)</code></pre>
+  <p class="code-caption">notebooks/01_data_preparation.ipynb — Step 3</p>
+
+  <h2>Data Splits &amp; Label Preparation</h2>
+  <p>Labels come straight from the clinical JSON: <code>BCR</code> (event indicator) and
+  <code>time_to_follow-up/BCR</code> (time in months). A stratified train/test split keeps the
+  BCR event rate balanced across both sets, and stratified k-fold cross-validation folds are
+  assigned within the training set only:</p>
+  <pre><code>train_df, test_df = train_test_split(
+    labels_df, test_size=0.2, stratify=labels_df["BCR"], random_state=42,
+)
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+train_df["fold"] = -1
+for fold_idx, (_, val_idx) in enumerate(skf.split(train_df, train_df["BCR"])):
+    train_df.loc[train_df.index[val_idx], "fold"] = fold_idx
+
+test_df["fold"] = -1  # held out, never used for cross-validation</code></pre>
+  <p class="code-caption">notebooks/01_data_preparation.ipynb — Step 6</p>
+
+  <div class="callout">
+    Both labels feed both downstream tasks: <code>BCR</code> alone drives binary
+    <strong>classification</strong>, while <code>BCR</code> + <code>time_to_follow-up/BCR</code>
+    together drive censoring-aware <strong>survival analysis</strong> — see
+    <a href="04-training-protocols.html">Training Protocols</a>.
+  </div>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="02"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>

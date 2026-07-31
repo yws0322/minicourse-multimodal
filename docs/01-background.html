@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · Background — Multimodal Survival Prediction Minicourse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+<script src="assets/nav.js" data-active="01"></script>
+
+<main>
+  <div class="eyebrow">01 · Background</div>
+  <h1>What Each Modality Sees</h1>
+  <p class="lede">Before building anything, it's worth being precise about what kind of signal each data
+  source actually carries — because that's what determines how we'll need to encode it.</p>
+
+  <div class="grid cols-3">
+    <div class="card">
+      <h3>Whole Slide Image <span class="tag">Pathology</span></h3>
+      <p>A gigapixel-resolution scan of stained tissue biopsy (typically H&amp;E).</p>
+      <p><strong>Captures:</strong></p>
+      <ul>
+        <li>Cell morphology</li>
+        <li>Tumor microenvironment</li>
+        <li>Spatial tissue architecture</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>CT / MRI <span class="tag">Radiology</span></h3>
+      <p>3D volumetric imaging of the body, revealing macroscopic anatomical structure.</p>
+      <p><strong>Captures:</strong></p>
+      <ul>
+        <li>Tumor size and location</li>
+        <li>Invasion extent</li>
+        <li>Organ-level context</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Clinical Data</h3>
+      <p>Structured patient records: demographics, lab values, pathology reports.</p>
+      <p><strong>Captures:</strong></p>
+      <ul>
+        <li>Age, stage, biomarkers</li>
+        <li>Treatment history</li>
+        <li>Lab values</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Multimodal Learning</h2>
+  <p><strong>What is it?</strong> Combining information from multiple data types (modalities) to
+  form a more complete view of a patient's health than any single modality can provide on its own.</p>
+  <p><strong>Why does it matter?</strong></p>
+  <ul>
+    <li>Integrating modalities leads to richer representations, stronger generalization, and
+    improved prediction.</li>
+    <li>It's especially valuable in medicine, where complex conditions often can't be fully
+    understood from a single data source — a tumor's morphology (WSI), its anatomical extent
+    (MRI), and a patient's clinical history each carry information the others don't.</li>
+  </ul>
+
+  <h2>Clinical Application — Disease Classification</h2>
+  <p>Predict the cancer type or molecular subtype directly from the data.</p>
+  <div class="callout">
+    <strong>Examples:</strong> LUAD vs. LUSC subtyping in lung cancer; ccRCC vs. pRCC vs. chRCC
+    subtyping in renal cell carcinoma; IDH mutation status and WHO 2021 grading in glioma.
+  </div>
+  <p><strong>Clinical value:</strong> determines first-line treatment decisions.</p>
+  <p><strong>Metrics:</strong> AUROC, Balanced Accuracy, F1.</p>
+
+  <h2>Clinical Application — Survival Prediction</h2>
+  <p><strong>What makes it different from classification?</strong></p>
+  <ul>
+    <li>Classification asks: <em>will</em> the event happen? (yes/no)</li>
+    <li>Survival prediction asks: <em>when</em> will the event happen?</li>
+  </ul>
+
+  <h3>Key concepts</h3>
+  <ul>
+    <li><strong>Event</strong> — the outcome (e.g. biochemical recurrence) actually occurred during follow-up.</li>
+    <li><strong>Censored</strong> — no event had occurred by the end of the study. A censored
+    patient still gives partial information: "survived at least this long."</li>
+    <li><strong>Risk score</strong> — the model outputs one scalar per patient; a higher score
+    means a higher predicted risk of an earlier event.</li>
+  </ul>
+
+  <h3>Evaluation: the concordance index</h3>
+  <p><strong>C-index</strong> — among every pair of patients where we can tell who had the event
+  first, what fraction does the model rank correctly by risk score? 0.5 is random, 1.0 is perfect
+  agreement.</p>
+
+  <h2>What We Will Build</h2>
+  <div class="card">
+    <p><strong>Input</strong> → <strong>Per-modality Encoder</strong> → <strong>Fusion</strong> → <strong>Prediction Head</strong> → <strong>Output</strong></p>
+    <table>
+      <tr><th>Input</th><th>Encoder</th></tr>
+      <tr><td>Whole Slide Images (Pathology)</td><td>WSI Encoder</td></tr>
+      <tr><td>CT / MRI (Radiology)</td><td>Radiology Encoder</td></tr>
+      <tr><td>Clinical Data</td><td>Tabular Encoder</td></tr>
+    </table>
+    <p>The three encoders' outputs are combined by a <strong>fusion</strong> step, then passed to
+    a <strong>prediction head</strong> that produces two kinds of output from the same fused
+    representation: <strong>disease classification</strong> and <strong>survival prediction</strong>.</p>
+  </div>
+
+  <div class="callout">
+    The rest of this course builds exactly this pipeline on the CHIMERA Task 1 dataset — H&amp;E
+    whole-slide images, multiparametric MRI, and structured clinical records, predicting
+    prostate cancer biochemical recurrence both as a classification and as a survival problem.
+  </div>
+
+  <div id="page-nav-root" class="page-nav"></div>
+  <script src="assets/pagenav.js" data-active="01"></script>
+</main>
+
+<footer class="site-footer">
+  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+</body>
+</html>
