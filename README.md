@@ -4,15 +4,6 @@ A step-by-step tutorial for building a multimodal (WSI + mpMRI + clinical) predi
 prostate cancer biochemical recurrence (BCR), on the
 [CHIMERA challenge](https://chimera.grand-challenge.org/) Task 1 dataset.
 
-A couple of deliberate simplifications:
-
-- **No layer-wise feature aggregation.** Just extract the final embedding per patch/scan, instead
-  of a multi-layer extract-then-aggregate scheme.
-- **Three fusion strategies shown side by side** — early, intermediate, late — instead of one
-  fixed hierarchical fusion architecture.
-
-WSI patch embeddings use [H-optimus-0](https://huggingface.co/bioptimus/H-optimus-0).
-
 The labels support **two tasks**, from the same `BCR` / `time_to_follow-up/BCR` fields:
 **classification** (binary BCR event) and **survival analysis** (time-to-event, censoring-aware).
 
