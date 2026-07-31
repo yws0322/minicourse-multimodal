@@ -15,9 +15,10 @@
 <main>
   <div class="eyebrow">06 · Evaluation &amp; Visualization</div>
   <h1>Comparing Strategies, and Making Predictions Inspectable</h1>
-  <p class="lede">Numbers alone (AUROC, C-index) tell you which fusion strategy wins. Visualization
-  is what lets you check <em>why</em> — whether a model is looking at the right tissue, and
-  whether its risk groups actually separate in a way that matches clinical intuition.</p>
+  <p class="lede">Numbers alone — AUROC, balanced accuracy, and F1 for classification; C-index for
+  survival — tell you which fusion strategy wins. Visualization is what lets you check
+  <em>why</em> — whether a model is looking at the right tissue, and whether its risk groups
+  actually separate in a way that matches clinical intuition.</p>
 
   <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/05_inference_evaluation.ipynb" target="_blank" rel="noopener">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
@@ -27,11 +28,26 @@
   <h2>Comparing fusion strategies</h2>
   <p>Every (fusion, task) pair's out-of-fold metric from <a href="../05-inference/">Inference</a>
   side by side:</p>
-  <pre><code>fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
-for ax, task, metric_name in zip(axes, ["classification", "survival"], ["AUROC", "C-index"]):
-    subset = comparison_df[comparison_df["task"] == task]
-    ax.bar(subset["fusion"], subset["value"], color=["#4FA3F0", "#7ec9a3", "#e0a03a"])
-    ax.set_title(f"{task.capitalize()} ({metric_name})")
+  <pre><code>fig, (ax_cls, ax_surv) = plt.subplots(1, 2, figsize=(12, 4.5), width_ratios=[3, 1])
+fusions, colors = ["early", "intermediate", "late"], ["#4FA3F0", "#7ec9a3", "#e0a03a"]
+
+# classification: one bar group per metric, one bar per fusion strategy
+cls = comparison_df[comparison_df["task"] == "classification"]
+cls_metrics = ["auroc", "balanced_accuracy", "f1"]
+x = np.arange(len(cls_metrics))
+for i, (fusion, color) in enumerate(zip(fusions, colors)):
+    values = [cls.loc[(cls["fusion"] == fusion) & (cls["metric"] == m), "value"].item() for m in cls_metrics]
+    ax_cls.bar(x + i * 0.25, values, 0.25, label=fusion, color=color)
+ax_cls.set_xticks(x + 0.25, ["AUROC", "Balanced Accuracy", "F1"])
+ax_cls.set_title("Classification")
+ax_cls.legend()
+
+# survival: one bar per fusion strategy
+surv = comparison_df[comparison_df["task"] == "survival"]
+ax_surv.bar(surv["fusion"], surv["value"], color=colors)
+ax_surv.set_title("Survival (C-index)")
+
+for ax in (ax_cls, ax_surv):
     ax.set_ylim(0.4, 1.0)
     ax.axhline(0.5, color="gray", linestyle="--", linewidth=1)  # random-chance baseline
     ax.grid(axis="y", alpha=0.3)</code></pre>

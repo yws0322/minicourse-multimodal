@@ -78,9 +78,16 @@ def aggregate_survival(slide_preds: pd.DataFrame) -> pd.DataFrame:
   <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Step 2</p>
 
   <h2>Step 3 · Metrics</h2>
-  <p>With one row per patient, AUROC and the concordance index are computed exactly as usual:</p>
+  <p>With one row per patient, classification gets three metrics — AUROC off the continuous
+  <code>mean_prob</code>, plus balanced accuracy and F1 off the discrete <code>majority_vote</code>
+  label — and survival gets the concordance index:</p>
   <pre><code>def evaluate_classification(patient_preds):
-    return roc_auc_score(patient_preds["y_event"], patient_preds["mean_prob"])
+    y_true = patient_preds["y_event"]
+    return {
+        "auroc": roc_auc_score(y_true, patient_preds["mean_prob"]),
+        "balanced_accuracy": balanced_accuracy_score(y_true, patient_preds["majority_vote"]),
+        "f1": f1_score(y_true, patient_preds["majority_vote"]),
+    }
 
 def evaluate_survival(patient_preds):
     return concordance_index(patient_preds["y_time"], patient_preds["mean_risk"], patient_preds["y_event"])</code></pre>
