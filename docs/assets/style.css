@@ -218,10 +218,11 @@ figure.fig {
 figure.fig img {
   max-width: 100%;
   width: 480px;
-  border: 1px solid var(--border);
   border-radius: 12px;
   background: #fff;
 }
+figure.fig.fig-lg img { width: 640px; }
+figure.fig.fig-sm img { width: 320px; }
 figure.fig figcaption {
   margin-top: 10px;
   font-size: 0.85rem;
