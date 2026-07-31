@@ -24,6 +24,12 @@
     Open notebook 01 in Colab
   </a>
 
+  <figure class="fig">
+    <img src="assets/images/chimera-task-diagram.png" alt="CHIMERA Task 1 diagram: T2-weighted, ADC, and high-b-value MRI plus a 3D WSI render and clinical data feeding pretrained encoders that concatenate into a biochemical recurrence prediction.">
+    <figcaption>CHIMERA challenge Task 1 — mpMRI (T2W / ADC / high-b-value), WSI, and clinical data
+    feed the pipeline this course builds. (Figure: CHIMERA challenge.)</figcaption>
+  </figure>
+
   <h2>Folder Structure</h2>
   <pre><code>task1/
 ├── clinical_data/            # one JSON per patient
@@ -41,6 +47,11 @@
     <li>SVS / pyramidal TIFF format, gigapixel resolution</li>
   </ul>
 
+  <figure class="fig">
+    <img src="assets/images/wsi-thumbnail.png" alt="Thumbnail of a real H&E-stained whole-slide image from the CHIMERA cohort.">
+    <figcaption>A real H&amp;E whole-slide image thumbnail from the cohort.</figcaption>
+  </figure>
+
   <h3>Step 1 · Tissue Detection</h3>
   <p>A WSI is mostly empty background glass — before extracting patches, we first need a mask of
   where the actual tissue is:</p>
@@ -53,6 +64,11 @@
     the tissue mask.</li>
     <li><strong>Upscale the mask</strong> — from thumbnail resolution back up to full WSI resolution.</li>
   </ol>
+
+  <figure class="fig">
+    <img src="assets/images/tissue-detection.png" alt="A whole-slide image before and after tissue mask outlining, showing the mask following the tissue boundary and excluding background.">
+    <figcaption>Before / after: the tissue mask traces the actual tissue boundary, excluding background glass.</figcaption>
+  </figure>
 
   <h3>Step 2 · Patch Extraction (Tiling)</h3>
   <ul>
@@ -86,6 +102,11 @@
     slide.close()
     return np.array(coords, dtype=np.int64)</code></pre>
   <p class="code-caption">notebooks/01_data_preparation.ipynb — Step 4</p>
+
+  <figure class="fig">
+    <img src="assets/images/patch-extraction.png" alt="A whole-slide image overlaid with a red tissue-coverage patch grid, with an arrow pointing to a stack of example extracted 224x224 patches.">
+    <figcaption>The tissue-filtered patch grid (left) and a few of the resulting 224×224 patches (right).</figcaption>
+  </figure>
 
   <h3>Toolbox</h3>
   <p>A few open-source libraries cover most of this pipeline in practice — this course
@@ -126,6 +147,11 @@
   </ul>
   <p>Most scans also ship a prostate segmentation <strong>mask</strong>, used to crop each volume
   down to the relevant anatomy before it reaches the model.</p>
+
+  <figure class="fig">
+    <img src="assets/images/mpmri-sequences.png" alt="T2-weighted, ADC, and high-b-value MRI slices for one patient, each with the prostate tumor mask overlaid in red.">
+    <figcaption>The three sequences for one patient — T2W, ADC, high-b-value — with the tumor mask overlaid.</figcaption>
+  </figure>
 
   <h3>mpMRI Preprocessing</h3>
   <p>Each series goes through the same pipeline before feature extraction:</p>
