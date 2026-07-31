@@ -300,6 +300,16 @@ figure.fig .fig-source {
 .colab-badge:hover { background: var(--accent); color: #fff; text-decoration: none; }
 .colab-badge img { height: 18px; }
 
+/* two or more badges, stacked one per line */
+.colab-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 20px;
+}
+.colab-badges .colab-badge { margin: 0; }
+
 /* prev/next footer nav */
 .page-nav {
   display: flex; justify-content: space-between; gap: 16px;

@@ -19,10 +19,16 @@
   patients, each with H&amp;E whole-slide images, multiparametric MRI, and a structured
   clinical record, labeled for biochemical recurrence (BCR).</p>
 
-  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/01_data_preparation.ipynb" target="_blank" rel="noopener">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open Data Preparation in Colab
-  </a>
+  <div class="colab-badges">
+    <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/00_environment_setup.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+      Open Environment Setup in Colab
+    </a>
+    <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/01_data_preparation.ipynb" target="_blank" rel="noopener">
+      <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+      Open Data Preparation in Colab
+    </a>
+  </div>
 
   <p>Task 1 asks a model to combine three inputs per patient — a T2-weighted MRI scan, an ADC map,
   and a high-b-value diffusion scan (all part of the same mpMRI exam), a 3D whole-slide pathology
@@ -51,11 +57,6 @@ cd minicourse-multimodal
 uv sync                                          # resolve + install into .venv/
 uv run python -m ipykernel install --user \
   --name minicourse-multimodal --display-name "minicourse-multimodal (uv)"</code></pre>
-
-  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/00_environment_setup.ipynb" target="_blank" rel="noopener">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open Environment Setup in Colab
-  </a>
 
   <h2>Downloading the Dataset</h2>
   <p><a href="https://chimera.grand-challenge.org/" target="_blank" rel="noopener">CHIMERA</a>
