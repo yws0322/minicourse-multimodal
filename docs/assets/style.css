@@ -222,6 +222,7 @@ figure.fig {
 }
 figure.fig img {
   max-width: 100%;
+  width: 480px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: #fff;
