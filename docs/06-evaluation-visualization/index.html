@@ -96,8 +96,8 @@ surv_lo, lo_lo, lo_hi = km_with_ci(low["y_time"], low["y_event"], timeline)
 surv_hi, hi_lo, hi_hi = km_with_ci(high["y_time"], high["y_event"], timeline)
 p_value = logrank_test(low["y_time"], high["y_time"], low["y_event"], high["y_event"]).p_value
 
-ax.plot(timeline, surv_lo, color="#4FA3F0", label="Low risk")
-ax.fill_between(timeline, lo_lo, lo_hi, color="#4FA3F0", alpha=0.2)
+ax.plot(timeline, surv_lo, color="#4caf82", label="Low risk")
+ax.fill_between(timeline, lo_lo, lo_hi, color="#4caf82", alpha=0.2)
 ax.plot(timeline, surv_hi, color="#e05a5a", label="High risk")
 ax.fill_between(timeline, hi_lo, hi_hi, color="#e05a5a", alpha=0.2)
 ax.set_title(f"log-rank p = {p_value:.2e}")</code></pre>
