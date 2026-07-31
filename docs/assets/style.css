@@ -24,10 +24,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, .brand, nav a, .badge, .tag {
-  font-family: "Source Code Pro", Menlo, Monaco, Consolas, monospace;
-}
-
 code, pre, kbd {
   font-family: "Source Code Pro", Menlo, Monaco, Consolas, monospace;
 }
