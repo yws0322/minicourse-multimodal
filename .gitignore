@@ -16,5 +16,8 @@ venv/
 # Secrets
 .env
 
+# Local dev notes, not part of the public repo
+CLAUDE.md
+
 # OS
 .DS_Store

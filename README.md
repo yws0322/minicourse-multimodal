@@ -1,19 +1,17 @@
 # Multimodal Survival Prediction — Minicourse
 
 A step-by-step tutorial for building a multimodal (WSI + mpMRI + clinical) prediction pipeline for
-prostate cancer biochemical recurrence (BCR), based on
-[HIMF-Surv](https://github.com/bowang-lab/HIMF-Surv) and the same
+prostate cancer biochemical recurrence (BCR), on the
 [CHIMERA challenge](https://chimera.grand-challenge.org/) Task 1 dataset.
 
-Compared to HIMF-Surv, this course simplifies two things:
+A couple of deliberate simplifications:
 
 - **No layer-wise feature aggregation.** Just extract the final embedding per patch/scan, instead
-  of HIMF-Surv's multi-layer extract-then-aggregate (`[0.5, 0.75, 1.0]` grouping) scheme.
+  of a multi-layer extract-then-aggregate scheme.
 - **Three fusion strategies shown side by side** — early, intermediate, late — instead of one
   fixed hierarchical fusion architecture.
 
-It also swaps WSI patch embeddings from UNI to
-[H-optimus-0](https://huggingface.co/bioptimus/H-optimus-0).
+WSI patch embeddings use [H-optimus-0](https://huggingface.co/bioptimus/H-optimus-0).
 
 The labels support **two tasks**, from the same `BCR` / `time_to_follow-up/BCR` fields:
 **classification** (binary BCR event) and **survival analysis** (time-to-event, censoring-aware).
@@ -79,5 +77,3 @@ public and `--no-sign-request` (or symlink in an existing copy — see notebook 
 
 - Dataset & task: [CHIMERA challenge](https://chimera.grand-challenge.org/), Task 1 (prostate
   cancer biochemical recurrence prediction).
-- Reference implementation: [HIMF-Surv](https://github.com/bowang-lab/HIMF-Surv) (Hierarchical
-  Intra- and Inter-Modality Fusion for Multimodal Survival Prediction in Prostate Cancer).

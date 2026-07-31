@@ -1,7 +1,7 @@
 [project]
 name = "minicourse-multimodal"
 version = "0.1.0"
-description = "Step-by-step multimodal (WSI + mpMRI + clinical) survival-prediction minicourse, based on HIMF-Surv / CHIMERA challenge Task 1"
+description = "Step-by-step multimodal (WSI + mpMRI + clinical) survival-prediction minicourse on the CHIMERA challenge Task 1 dataset"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
