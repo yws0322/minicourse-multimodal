@@ -1,4 +1,4 @@
-# Multimodal Survival Prediction — Minicourse
+# Minicourse Multimodal
 
 A step-by-step tutorial for building a multimodal (WSI + mpMRI + clinical) prediction pipeline for
 prostate cancer biochemical recurrence (BCR), on the
@@ -68,11 +68,3 @@ public and `--no-sign-request` (or symlink in an existing copy — see notebook 
 
 - Dataset & task: [CHIMERA challenge](https://chimera.grand-challenge.org/), Task 1 (prostate
   cancer biochemical recurrence prediction).
-- Multimodal fusion diagram (`docs/01-background.html`): Kline et al., "Multimodal machine
-  learning in precision health: A scoping review," *npj Digital Medicine* 5, 171 (2022).
-  [doi.org/10.1038/s41746-022-00712-8](https://doi.org/10.1038/s41746-022-00712-8).
-- Glioma classification example figure (`docs/01-background.html`): "The 2021 WHO Classification
-  for Gliomas and Implications on Imaging Diagnosis: Part 1—Key Points of the Fifth Edition and
-  Summary of Imaging Findings on Adult-Type Diffuse Gliomas," *Journal of Magnetic Resonance
-  Imaging* 58(3), 677–689 (2023). [doi.org/10.1002/jmri.28743](https://doi.org/10.1002/jmri.28743)
-  (CC BY-NC-ND 4.0).
