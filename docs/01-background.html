@@ -7,9 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
 </head>
 <body>
 <div id="nav-root"></div>
@@ -116,13 +113,21 @@
   agreement.</p>
 
   <div class="card">
-    $$C = \frac{\sum_{i,j} I(T_i < T_j, \delta_i = 1)\left[I(\hat{r}_i > \hat{r}_j) + \tfrac{1}{2} I(\hat{r}_i = \hat{r}_j)\right]}{\sum_{i,j} I(T_i < T_j, \delta_i = 1)}$$
+    <div class="formula-wrap">
+      <div class="formula">
+        <span><em>C</em> =</span>
+        <span class="frac">
+          <span class="frac-num">&sum;<sub>i,j</sub> I(T<sub>i</sub> &lt; T<sub>j</sub>, &delta;<sub>i</sub> = 1) [ I(r̂<sub>i</sub> &gt; r̂<sub>j</sub>) + &half;I(r̂<sub>i</sub> = r̂<sub>j</sub>) ]</span>
+          <span class="frac-denom">&sum;<sub>i,j</sub> I(T<sub>i</sub> &lt; T<sub>j</sub>, &delta;<sub>i</sub> = 1)</span>
+        </span>
+      </div>
+    </div>
     <p>where:</p>
     <ul>
-      <li>$T_i$ is the observed survival time of patient $i$</li>
-      <li>$\delta_i$ is the event indicator ($\delta_i = 1$ for an observed event, $\delta_i = 0$ for censoring)</li>
-      <li>$\hat{r}_i$ is the predicted risk score, with a higher value indicating higher risk</li>
-      <li>$I(\cdot)$ is the indicator function</li>
+      <li><em>T<sub>i</sub></em> is the observed survival time of patient <em>i</em></li>
+      <li><em>&delta;<sub>i</sub></em> is the event indicator (&delta;<sub>i</sub> = 1 for an observed event, &delta;<sub>i</sub> = 0 for censoring)</li>
+      <li><em>r̂<sub>i</sub></em> is the predicted risk score, with a higher value indicating higher risk</li>
+      <li><em>I(&middot;)</em> is the indicator function</li>
     </ul>
   </div>
 
