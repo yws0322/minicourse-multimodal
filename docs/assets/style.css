@@ -202,6 +202,7 @@ pre code { background: none; padding: 0; }
   padding: 1px 6px;
   border-radius: 5px;
   font-size: 0.88em;
+  font-family: inherit;
 }
 
 .code-caption {
