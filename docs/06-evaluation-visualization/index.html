@@ -105,6 +105,11 @@ ax.set_title(f"log-rank p = {p_value:.2e}")</code></pre>
   average (which C-index already measures) — the two groups it produces have visibly different,
   statistically distinguishable survival curves.</p>
 
+  <figure class="fig">
+    <img src="../assets/images/km-stratification.png" alt="Kaplan-Meier survival curves for the high-risk and low-risk groups, with confidence bands, showing a log-rank p-value of 2.32e-18.">
+    <figcaption>High-risk (red) vs. low-risk (green) survival curves for one fusion strategy — the gap between them is what the log-rank test is checking for statistical significance.</figcaption>
+  </figure>
+
   <h2>ABMIL attention — which patches drove the prediction?</h2>
   <p>The same attention weights ABMIL used to pool a WSI's patches into one vector double as an
   interpretability signal. Overlaying them back onto the slide thumbnail shows which regions the
@@ -124,6 +129,11 @@ def visualize_abmil_attention(patient_id, slide_id, attention, coords, patch_siz
     heat = gaussian_filter(heat, sigma=max(1, int(max(heat.shape) * 0.01)))
     ax.imshow(thumb); ax.imshow(heat / heat.max(), cmap="jet", alpha=0.5)</code></pre>
   <p class="code-caption">notebooks/05_inference_evaluation.ipynb — ABMIL attention</p>
+
+  <figure class="fig">
+    <img src="../assets/images/abmil-attention-heatmap.png" alt="Two whole-slide images with ABMIL attention heatmaps overlaid, showing warm-colored high-attention regions concentrated over specific tissue areas.">
+    <figcaption>ABMIL attention overlaid on two slides — the warm (red/yellow) regions are the patches the model weighted most heavily when forming its prediction.</figcaption>
+  </figure>
 
   <div class="callout">
     The ABMIL heatmap turns a single risk score into inspectable evidence: <em>which patch</em>
