@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
 </head>
 <body>
 <div id="nav-root"></div>
@@ -63,6 +66,13 @@
     (MRI), and a patient's clinical history each carry information the others don't.</li>
   </ul>
 
+  <figure class="fig">
+    <img src="assets/images/multimodal-fusion.png" alt="Diagram: disparate health data sources (medical imaging, demographics/lab values, clinical notes, time series, omics) feeding into early, intermediate, or late fusion models, producing clustering, regression, or classification outputs.">
+    <figcaption>Early, intermediate, and late fusion of multimodal health data.
+    <span class="fig-source">Source: Kline et al., "Multimodal machine learning in precision health: A scoping review," <em>npj Digital Medicine</em> 5, 171 (2022). <a href="https://doi.org/10.1038/s41746-022-00712-8" target="_blank" rel="noopener">doi.org/10.1038/s41746-022-00712-8</a></span>
+    </figcaption>
+  </figure>
+
   <h2>Clinical Application — Disease Classification</h2>
   <p>Predict the cancer type or molecular subtype directly from the data.</p>
   <div class="callout">
@@ -71,6 +81,13 @@
   </div>
   <p><strong>Clinical value:</strong> determines first-line treatment decisions.</p>
   <p><strong>Metrics:</strong> AUROC, Balanced Accuracy, F1.</p>
+
+  <figure class="fig">
+    <img src="assets/images/glioma-classification-examples.png" alt="Three glioma cases (a, b, c), each showing an MRI slice and matching histopathology patch alongside molecular markers, mapped to a final WHO diagnosis: IDH-wildtype diffuse glioma WHO grade 3 NOS, WHO grade 2 NEC, and glioblastoma WHO grade 4.">
+    <figcaption>Imaging + histopathology + molecular markers → WHO glioma diagnosis.
+    <span class="fig-source">Source: "The 2021 WHO Classification for Gliomas and Implications on Imaging Diagnosis: Part 1," <em>J. Magn. Reson. Imaging</em> 58(3), 677–689 (2023). <a href="https://doi.org/10.1002/jmri.28743" target="_blank" rel="noopener">doi.org/10.1002/jmri.28743</a> (CC BY-NC-ND 4.0)</span>
+    </figcaption>
+  </figure>
 
   <h2>Clinical Application — Survival Prediction</h2>
   <p><strong>What makes it different from classification?</strong></p>
@@ -88,10 +105,26 @@
     means a higher predicted risk of an earlier event.</li>
   </ul>
 
+  <figure class="fig">
+    <img src="assets/images/censoring-types.png" alt="Diagram of five patients on a study timeline illustrating not censored, right censored, left censored, and interval censored event types.">
+    <figcaption>Censoring types: only patient 1 has a fully observed event time — the rest give partial information about how long they survived.</figcaption>
+  </figure>
+
   <h3>Evaluation: the concordance index</h3>
   <p><strong>C-index</strong> — among every pair of patients where we can tell who had the event
   first, what fraction does the model rank correctly by risk score? 0.5 is random, 1.0 is perfect
   agreement.</p>
+
+  <div class="card">
+    $$C = \frac{\sum_{i,j} I(T_i < T_j, \delta_i = 1)\left[I(\hat{r}_i > \hat{r}_j) + \tfrac{1}{2} I(\hat{r}_i = \hat{r}_j)\right]}{\sum_{i,j} I(T_i < T_j, \delta_i = 1)}$$
+    <p>where:</p>
+    <ul>
+      <li>$T_i$ is the observed survival time of patient $i$</li>
+      <li>$\delta_i$ is the event indicator ($\delta_i = 1$ for an observed event, $\delta_i = 0$ for censoring)</li>
+      <li>$\hat{r}_i$ is the predicted risk score, with a higher value indicating higher risk</li>
+      <li>$I(\cdot)$ is the indicator function</li>
+    </ul>
+  </div>
 
   <h2>What We Will Build</h2>
   <div class="card">

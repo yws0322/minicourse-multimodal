@@ -233,6 +233,13 @@ figure.fig figcaption {
   font-size: 0.85rem;
   color: var(--text-soft);
 }
+figure.fig .fig-source {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  opacity: 0.85;
+}
 
 .callout {
   border-left: 3px solid var(--accent);
