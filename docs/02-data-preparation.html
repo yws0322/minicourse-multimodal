@@ -24,11 +24,11 @@
     Open notebook 01 in Colab
   </a>
 
-  <figure class="fig">
-    <img src="assets/images/chimera-task-diagram.png" alt="CHIMERA Task 1 diagram: T2-weighted, ADC, and high-b-value MRI plus a 3D WSI render and clinical data feeding pretrained encoders that concatenate into a biochemical recurrence prediction.">
-    <figcaption>CHIMERA challenge Task 1 — mpMRI (T2W / ADC / high-b-value), WSI, and clinical data
-    feed the pipeline this course builds. (Figure: CHIMERA challenge.)</figcaption>
-  </figure>
+  <p>Task 1 asks a model to combine three inputs per patient — a T2-weighted MRI scan, an ADC map,
+  and a high-b-value diffusion scan (all part of the same mpMRI exam), a 3D whole-slide pathology
+  scan, and a structured clinical record — and predict whether biochemical recurrence will occur.
+  Each modality passes through its own pretrained encoder before the resulting representations are
+  combined and mapped to a recurrence prediction.</p>
 
   <h2>Folder Structure</h2>
   <pre><code>task1/
