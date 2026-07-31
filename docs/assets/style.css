@@ -24,7 +24,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-code, pre, kbd {
+pre, pre code, kbd {
   font-family: "Source Code Pro", Menlo, Monaco, Consolas, monospace;
 }
 
@@ -150,6 +150,16 @@ li { margin-bottom: 6px; }
   padding: 20px 22px;
   margin: 20px 0;
 }
+
+a.card {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+a.card:hover { border-color: var(--accent); background: var(--accent-soft); text-decoration: none; }
+a.card strong { display: block; margin-top: 4px; color: #2b2b2b; }
+.card-cta { display: block; margin-top: 10px; font-size: 0.82rem; color: var(--accent); font-weight: 600; }
 
 .grid {
   display: grid;
