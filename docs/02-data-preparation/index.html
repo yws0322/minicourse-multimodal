@@ -140,10 +140,14 @@
   <h2>mpMRI</h2>
   <p>Each patient has <strong>3 sequences</strong> per scan:</p>
   <ul>
-    <li><strong>T2W</strong> — T2-weighted anatomical imaging</li>
-    <li><strong>ADC</strong> — apparent diffusion coefficient map, sensitive to tissue cellularity</li>
+    <li><strong>T2W</strong> — T2-weighted anatomical imaging. Shows prostate zonal anatomy and
+    tumor location/extent — the structural reference the other two sequences are read against.</li>
+    <li><strong>ADC</strong> — apparent diffusion coefficient map, sensitive to tissue cellularity.
+    Lower values mean more restricted water diffusion, which correlates with denser, more
+    aggressive tumor tissue.</li>
     <li><strong>HBV</strong> — high-b-value diffusion-weighted imaging, the third channel the MRI
-    encoder expects</li>
+    encoder expects. Suppresses normal-tissue signal so the tumor stands out with higher
+    conspicuity, which helps catch small or subtle lesions.</li>
   </ul>
   <p>Most scans also ship a prostate segmentation <strong>mask</strong>, used to crop each volume
   down to the relevant anatomy before it reaches the model.</p>
