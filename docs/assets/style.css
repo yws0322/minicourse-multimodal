@@ -222,7 +222,7 @@ figure.fig img {
   background: #fff;
 }
 figure.fig.fig-lg img { width: 640px; }
-figure.fig.fig-sm img { width: 320px; }
+figure.fig.fig-sm img { width: 220px; }
 figure.fig figcaption {
   margin-top: 10px;
   font-size: 0.85rem;
