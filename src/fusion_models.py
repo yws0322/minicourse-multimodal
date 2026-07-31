@@ -41,7 +41,7 @@ class PredictionHead(nn.Module):
     logit for classification, one hazard logit per time bin for survival). Every fusion
     strategy builds its head through `build_task_head`, so the head's layers/capacity are held
     identical everywhere a comparison is being made (fusion strategy, or task) -- only the
-    backbone feeding into it differs. Matches HIMF-Surv's own `MLPPredictionHead`: a 3-layer
+    backbone feeding into it differs. A standard 3-layer
     MLP (input -> 64 -> 32 -> output), BatchNorm + ReLU after the first two layers."""
     def __init__(self, input_dim: int, output_dim: int, hidden_dim: int = 64):
         super().__init__()
@@ -78,8 +78,8 @@ def discretize_time(time: torch.Tensor, num_bins: int, max_time: float, device: 
 
 
 class NLLLoss(nn.Module):
-    """Discrete-time negative log-likelihood survival loss (as in HIMF-Surv):
-    turns per-bin hazard logits into a survival curve, and scores the observed
+    """Discrete-time negative log-likelihood survival loss: turns per-bin hazard logits
+    into a survival curve, and scores the observed
     time bin's likelihood -- the event-hazard term if BCR occurred, the
     still-surviving term if the patient was censored."""
     def __init__(self, reduction: str = "mean"):
@@ -176,10 +176,10 @@ class EarlyFusionModel(nn.Module):
 class IntermediateFusionModel(nn.Module):
     """Each modality gets its own projection into a shared embedding space, then a *single*
     self-attention pass lets the three modality tokens attend to each other once before mean
-    pooling. This is HIMF-Surv's own approach (per-modality projection + attention across
+    pooling. This is a common approach for this kind of fusion (per-modality projection + attention across
     modalities), minus the layer-wise aggregation this course skips *and* minus the deep
     multi-layer transformer stack -- one round of cross-modal attention is enough to
-    demonstrate what "intermediate" fusion means. `shared_dim=256` (vs. HIMF-Surv's 1536) is a
+    demonstrate what "intermediate" fusion means. `shared_dim=256` (vs. a much larger shared space) is a
     deliberate choice for this course's much smaller cohort: at 1536, the attention
     in/out-projections alone would put this model over 10x the parameter count of early/late
     fusion, undermining a fair comparison and inviting overfitting on ~95 patients."""

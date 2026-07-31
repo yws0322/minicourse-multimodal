@@ -1,15 +1,14 @@
-"""MRI-PTPCa model architecture, adapted from HIMF-Surv's `feature_extractors/mri.py`
-(itself adapted from https://github.com/StandWisdom/MRI-based-Predicted-Transformer-for-Prostate-cancer).
+"""MRI-PTPCa model architecture, adapted from
+https://github.com/StandWisdom/MRI-based-Predicted-Transformer-for-Prostate-cancer.
 
 This is exactly the kind of thing the project convention keeps out of notebooks: a large,
 third-party CNN+ViT architecture with input-reshaping plumbing that isn't itself the lesson —
 notebook 02 explains and visualizes *preprocessing* and *what gets extracted*, and imports the
 model from here to do it.
 
-HIMF-Surv registers forward hooks on every transformer block, mean-pools tokens per block, and
-aggregates layers with a `[0.5, 0.75, 1.0]` grouping scheme. This course skips that: `extract_embedding`
-hooks only the *last* transformer block, matching the "no layer-wise aggregation" simplification
-used for the WSI (H-optimus-0) side too.
+`extract_embedding` hooks only the *last* transformer block and returns its mean-pooled token
+output -- no layer-wise aggregation across multiple transformer blocks, matching the
+single-layer simplification used for the WSI (H-optimus-0) side too.
 """
 import typing as tp
 from pathlib import Path
@@ -131,7 +130,7 @@ def extract_embedding(
 
     `dwi_tensor` is the third (high-b-value/DWI) modality the model was pretrained expecting --
     CHIMERA provides this as the `_hbv.mha` series. If it's not available for a given scan, pass
-    `None` to zero-fill instead (matching HIMF-Surv's fallback when a series is missing).
+    `None` to zero-fill instead.
 
     Returns a single `EMBEDDING_DIM`-length vector (no per-layer aggregation).
     """
