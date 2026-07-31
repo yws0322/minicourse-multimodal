@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>03 · Model Architecture — Multimodal Survival Prediction Minicourse</title>
+<title>03 · Model Architecture — Minicourse Multimodal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
@@ -22,7 +22,7 @@
 
   <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/03_fusion_models.ipynb" target="_blank" rel="noopener">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open notebook 03 in Colab
+    Open Fusion Models in Colab
   </a>
 
   <h2>Step 1 · Per-modality Encoders</h2>
@@ -74,6 +74,11 @@ def extract_patch_embeddings(wsi_path, coords, patch_size, patch_level, model, t
   <p class="code-caption">notebooks/02_feature_extraction.ipynb — Step 1. Unlike deeper feature-aggregation
   schemes that pool several intermediate transformer layers, this course keeps it to one: the
   final block's embedding, per patch.</p>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/02_feature_extraction.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open Feature Extraction in Colab
+  </a>
 
   <h2>Step 2 · MIL Pooling — ABMIL</h2>
   <p>A whole-slide image doesn't give the model one vector — it gives a <em>bag</em> of hundreds
@@ -213,7 +218,7 @@ def build_task_head(input_dim, task, num_time_bins=15):
 </main>
 
 <footer class="site-footer">
-  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+  Minicourse Multimodal · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
 </footer>
 </body>
 </html>

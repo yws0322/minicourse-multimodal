@@ -26,7 +26,7 @@
   root.innerHTML =
     '<nav class="drawer" id="drawer">' +
     '<div class="drawer-title">Course Contents</div>' +
-    '<ul><li><a href="' + base + 'index.html">Home</a></li>' + links + "</ul>" +
+    '<ul><li><a href="' + (base || "./") + '">Home</a></li>' + links + "</ul>" +
     "</nav>" +
     '<header class="site-header" id="site-header">' +
     '<div class="header-links"><a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener" aria-label="GitHub">' +

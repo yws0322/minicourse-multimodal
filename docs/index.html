@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Multimodal Survival Prediction — Minicourse</title>
+<title>Minicourse Multimodal</title>
 <meta name="description" content="A step-by-step minicourse on multimodal (WSI + mpMRI + clinical) deep learning for prostate cancer disease classification and survival prediction.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
@@ -45,6 +45,16 @@
   <h2>Notebooks</h2>
   <p>Each stage of the pipeline has a companion Jupyter notebook — click any card to open it
   directly in Colab.</p>
+  <div class="callout"><strong>Colab is fine for reading — but run this on a server if you can.</strong>
+  Whole-slide images are gigapixel files, so the dataset is large, patch extraction and
+  feature extraction are I/O- and GPU-heavy, and training runs long. Colab's disk, session
+  timeouts, and shared GPUs make a full pass painful. Cloning the repo onto a machine or cluster
+  with real storage and a GPU is the recommended route:
+  <pre><code>git clone https://github.com/yws0322/minicourse-multimodal.git
+cd minicourse-multimodal
+uv sync</code></pre>
+  Repo: <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">github.com/yws0322/minicourse-multimodal</a>
+  — see <a href="02-data-preparation/">Data Preparation</a> for the full setup and download steps.</div>
   <div class="grid cols-3">
     <a class="card" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/00_environment_setup.ipynb" target="_blank" rel="noopener"><span class="tag">00</span><strong>Environment Setup</strong><span class="card-cta">Open in Colab ↗</span></a>
     <a class="card" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/01_data_preparation.ipynb" target="_blank" rel="noopener"><span class="tag">01</span><strong>Data Preparation</strong><span class="card-cta">Open in Colab ↗</span></a>
@@ -56,7 +66,7 @@
 </main>
 
 <footer class="site-footer">
-  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+  Minicourse Multimodal · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
 </footer>
 </body>
 </html>

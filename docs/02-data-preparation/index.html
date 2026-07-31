@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>02 · Data Preparation — Multimodal Survival Prediction Minicourse</title>
+<title>02 · Data Preparation — Minicourse Multimodal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
@@ -15,13 +15,13 @@
 <main>
   <div class="eyebrow">02 · Data Preparation</div>
   <h1>Turning Raw Scans and Records into Model Inputs</h1>
-  <p class="lede">The dataset is the CHIMERA challenge's Task 1 cohort: ~95 prostate cancer
+  <p class="lede">The dataset is the <a href="https://chimera.grand-challenge.org/" target="_blank" rel="noopener">CHIMERA challenge</a>'s Task 1 cohort: ~95 prostate cancer
   patients, each with H&amp;E whole-slide images, multiparametric MRI, and a structured
   clinical record, labeled for biochemical recurrence (BCR).</p>
 
   <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/01_data_preparation.ipynb" target="_blank" rel="noopener">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
-    Open notebook 01 in Colab
+    Open Data Preparation in Colab
   </a>
 
   <p>Task 1 asks a model to combine three inputs per patient — a T2-weighted MRI scan, an ADC map,
@@ -29,6 +29,51 @@
   scan, and a structured clinical record — and predict whether biochemical recurrence will occur.
   Each modality passes through its own pretrained encoder before the resulting representations are
   combined and mapped to a recurrence prediction.</p>
+
+  <h2>Environment Setup</h2>
+  <div class="callout"><strong>Run this on a server, not in Colab, if you have the option.</strong>
+  Every notebook opens in Colab, which is convenient for reading along — but whole-slide images are
+  gigapixel files, so the raw dataset is large, patch and feature extraction are I/O- and GPU-heavy,
+  and training runs long. Colab's disk limits, session timeouts, and shared GPUs make a real
+  end-to-end pass painful. Prefer cloning
+  <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">the repo</a>
+  onto a machine or cluster with proper storage and a GPU.</div>
+  <p>Set up the project environment with
+  <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a>. A single
+  <code>uv sync</code> installs everything the whole course needs — including
+  <code>openslide-bin</code>, which bundles a prebuilt OpenSlide C library so WSI reading needs no
+  system-level install — then register the environment as a Jupyter kernel for notebooks 01+:</p>
+  <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv isn't installed yet
+
+git clone https://github.com/yws0322/minicourse-multimodal.git
+cd minicourse-multimodal
+
+uv sync                                          # resolve + install into .venv/
+uv run python -m ipykernel install --user \
+  --name minicourse-multimodal --display-name "minicourse-multimodal (uv)"</code></pre>
+
+  <a class="colab-badge" href="https://colab.research.google.com/github/yws0322/minicourse-multimodal/blob/main/notebooks/00_environment_setup.ipynb" target="_blank" rel="noopener">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="">
+    Open Environment Setup in Colab
+  </a>
+
+  <h2>Downloading the Dataset</h2>
+  <p><a href="https://chimera.grand-challenge.org/" target="_blank" rel="noopener">CHIMERA</a>
+  Task 1 is hosted on a public, no-sign-required S3 bucket, so no credentials or challenge
+  registration are needed to pull it — only the AWS CLI
+  (<code>uv pip install awscli</code> if you don't have it):</p>
+  <pre><code>aws s3 sync --no-sign-request s3://chimera-challenge/v2/task1/ data/raw/task1/</code></pre>
+  <p>The full training cohort is ~95 patients and several GB — more than a tutorial pass needs. To
+  grab a small real subset instead, name-filter the sync by patient ID:</p>
+  <pre><code>aws s3 sync --no-sign-request s3://chimera-challenge/v2/task1/ data/raw/task1/ \
+  --exclude "*" \
+  --include "*1003*" --include "*1010*" --include "*1011*" --include "*1021*" --include "*1025*"</code></pre>
+  <div class="callout"><strong>Already have the dataset locally</strong> (e.g. on shared cluster
+  storage)? Skip the download and symlink it into place instead — nothing downstream cares how the
+  files got there, only that <code>clinical_data/</code>, <code>pathology/images/</code>, and
+  <code>radiology/images/</code> exist under <code>data/raw/task1</code>:
+  <pre><code>mkdir -p data/raw
+ln -s /path/to/existing/chimera/task1 data/raw/task1</code></pre></div>
 
   <h2>Folder Structure</h2>
   <pre><code>task1/
@@ -246,7 +291,7 @@ test_df["fold"] = -1  # held out, never used for cross-validation</code></pre>
 </main>
 
 <footer class="site-footer">
-  Multimodal Survival Prediction Minicourse · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
+  Minicourse Multimodal · <a href="https://github.com/yws0322/minicourse-multimodal" target="_blank" rel="noopener">Source on GitHub</a>
 </footer>
 </body>
 </html>
