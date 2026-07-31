@@ -89,13 +89,13 @@ def evaluate_survival(patient_preds):
   <p>Every fold's checkpoint is scored <em>only</em> on the patients it never trained on — its
   own validation fold — before all folds' patients are combined into one overall metric per
   (fusion, task) pair. This is what makes the final numbers in
-  <a href="../07-evaluation-visualization/">Evaluation &amp; Visualization</a> trustworthy
+  <a href="../06-evaluation-visualization/">Evaluation &amp; Visualization</a> trustworthy
   rather than optimistic.</p>
 
   <div class="callout">
-    This out-of-fold, patient-level table is also the input to
-    <a href="../06-postprocessing/">Post-processing</a> — thresholds and risk groups are
-    computed downstream of these aggregated predictions, never on raw slide-level output.
+    This out-of-fold, patient-level table is also the input to the risk-group stratification in
+    <a href="../06-evaluation-visualization/">Evaluation &amp; Visualization</a> — computed
+    downstream of these aggregated predictions, never on raw slide-level output.
   </div>
 
   <div id="page-nav-root" class="page-nav"></div>

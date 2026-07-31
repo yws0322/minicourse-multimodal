@@ -5,10 +5,9 @@
     { id: "03", slug: "03-model-architecture", title: "Model Architecture" },
     { id: "04", slug: "04-training-protocols", title: "Training Protocols" },
     { id: "05", slug: "05-inference", title: "Inference" },
-    { id: "06", slug: "06-postprocessing", title: "Post-processing" },
-    { id: "07", slug: "07-evaluation-visualization", title: "Evaluation & Visualization" },
-    { id: "08", slug: "08-conclusion", title: "Conclusion" },
-    { id: "09", slug: "09-quiz", title: "Quiz" },
+    { id: "06", slug: "06-evaluation-visualization", title: "Evaluation & Visualization" },
+    { id: "07", slug: "07-conclusion", title: "Conclusion" },
+    { id: "08", slug: "08-quiz", title: "Quiz" },
   ];
 
   window.COURSE_SECTIONS = SECTIONS;

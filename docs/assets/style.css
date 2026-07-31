@@ -109,7 +109,14 @@ main {
 }
 
 @media (min-width: 901px) {
-  main { margin-left: var(--sidebar-w); margin-right: 0; padding-left: 40px; padding-right: 40px; }
+  main {
+    padding-left: 0;
+    padding-right: 0;
+    /* center within the viewport minus the sidebar, not the full viewport,
+       so the content column doesn't look shoved up against the sidebar */
+    margin-left: max(calc(var(--sidebar-w) + 24px), calc(var(--sidebar-w) + (100vw - var(--sidebar-w) - var(--max-width)) / 2));
+    margin-right: max(24px, calc((100vw - var(--sidebar-w) - var(--max-width)) / 2));
+  }
 }
 
 @media (max-width: 900px) {

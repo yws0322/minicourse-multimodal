@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>07 · Evaluation & Visualization — Multimodal Survival Prediction Minicourse</title>
+<title>06 · Evaluation & Visualization — Multimodal Survival Prediction Minicourse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <div id="nav-root"></div>
-<script src="../assets/nav.js" data-base="../" data-active="07"></script>
+<script src="../assets/nav.js" data-base="../" data-active="06"></script>
 
 <main>
-  <div class="eyebrow">07 · Evaluation &amp; Visualization</div>
+  <div class="eyebrow">06 · Evaluation &amp; Visualization</div>
   <h1>Comparing Strategies, and Making Predictions Inspectable</h1>
   <p class="lede">Numbers alone (AUROC, C-index) tell you which fusion strategy wins. Visualization
   is what lets you check <em>why</em> — whether a model is looking at the right tissue, and
@@ -40,9 +40,35 @@ for ax, task, metric_name in zip(axes, ["classification", "survival"], ["AUROC",
   architecture</a>, differences here are attributable to the fusion mechanism itself.</p>
 
   <h2>Kaplan-Meier risk stratification</h2>
-  <p>For the best-performing survival model, the high/low risk groups from
-  <a href="../06-postprocessing/">post-processing</a> get their own survival curves — with
-  confidence bands and a log-rank test for whether the two groups are statistically distinguishable:</p>
+  <p>A continuous risk score is far more useful once patients are split into discrete groups.
+  Here, the highest-risk 20% of patients become the "high risk" group and everyone else is "low
+  risk":</p>
+  <pre><code>def add_tiny_noise(x: np.ndarray, seed: int = 42) -> np.ndarray:
+    """Breaks ties -- otherwise many patients can land exactly on the threshold when
+    risk scores repeat."""
+    rng = np.random.default_rng(seed)
+    return x + 1e-8 * rng.standard_normal(size=x.shape)
+
+def stratify_by_risk(patient_preds: pd.DataFrame, q: float = 0.2) -> pd.DataFrame:
+    """Top-q fraction of patients by risk score become the high-risk group."""
+    out = patient_preds.copy()
+    risk = add_tiny_noise(out["mean_risk"].to_numpy())
+    threshold_value = np.quantile(risk, 1 - q)
+    out["risk_group"] = np.where(risk >= threshold_value, "high", "low")
+    return out</code></pre>
+  <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Risk stratification</p>
+
+  <div class="callout warn">
+    <strong>Why a quantile split, not a fixed risk-score cutoff?</strong> Risk scores from
+    different fusion strategies (or different training runs) aren't on a shared, calibrated
+    scale — a "risk of 2.3" means something different for two different models. A quantile split
+    only asks the model to rank patients correctly relative to each other, which is exactly what
+    the concordance index already rewards it for doing.
+  </div>
+
+  <p>For the best-performing survival model, the resulting high/low risk groups get their own
+  survival curves — with confidence bands and a log-rank test for whether the two groups are
+  statistically distinguishable:</p>
   <pre><code>def km_with_ci(times, events, timeline):
     kmf = KaplanMeierFitter()
     kmf.fit(times, events)
@@ -123,7 +149,7 @@ return captured["attn"][0].mean(dim=0).cpu().numpy()  # (N, N) over heads</code>
   </div>
 
   <div id="page-nav-root" class="page-nav"></div>
-  <script src="../assets/pagenav.js" data-base="../" data-active="07"></script>
+  <script src="../assets/pagenav.js" data-base="../" data-active="06"></script>
 </main>
 
 <footer class="site-footer">
