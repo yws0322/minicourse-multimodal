@@ -1,6 +1,7 @@
 (function () {
   var script = document.currentScript;
   var active = script.getAttribute("data-active") || "";
+  var base = script.getAttribute("data-base") || "";
   var root = document.getElementById("page-nav-root");
   if (!root || !window.COURSE_SECTIONS) return;
 
@@ -12,10 +13,10 @@
 
   var html = "";
   html += prev
-    ? '<a class="prev" href="' + prev.href + '"><span class="dir">&larr; Previous</span>' + prev.id + " · " + prev.title + "</a>"
+    ? '<a class="prev" href="' + base + prev.slug + '/"><span class="dir">&larr; Previous</span>' + prev.id + " · " + prev.title + "</a>"
     : "<span></span>";
   html += next
-    ? '<a class="next" href="' + next.href + '"><span class="dir">Next &rarr;</span>' + next.id + " · " + next.title + "</a>"
+    ? '<a class="next" href="' + base + next.slug + '/"><span class="dir">Next &rarr;</span>' + next.id + " · " + next.title + "</a>"
     : "<span></span>";
 
   root.innerHTML = html;

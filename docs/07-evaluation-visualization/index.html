@@ -6,11 +6,11 @@
 <title>07 · Evaluation & Visualization — Multimodal Survival Prediction Minicourse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <div id="nav-root"></div>
-<script src="assets/nav.js" data-active="07"></script>
+<script src="../assets/nav.js" data-base="../" data-active="07"></script>
 
 <main>
   <div class="eyebrow">07 · Evaluation &amp; Visualization</div>
@@ -25,7 +25,7 @@
   </a>
 
   <h2>Comparing fusion strategies</h2>
-  <p>Every (fusion, task) pair's out-of-fold metric from <a href="05-inference.html">Inference</a>
+  <p>Every (fusion, task) pair's out-of-fold metric from <a href="../05-inference/">Inference</a>
   side by side:</p>
   <pre><code>fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
 for ax, task, metric_name in zip(axes, ["classification", "survival"], ["AUROC", "C-index"]):
@@ -36,12 +36,12 @@ for ax, task, metric_name in zip(axes, ["classification", "survival"], ["AUROC",
     ax.axhline(0.5, color="gray", linestyle="--", linewidth=1)  # random-chance baseline
     ax.grid(axis="y", alpha=0.3)</code></pre>
   <p class="code-caption">notebooks/05_inference_evaluation.ipynb — Step 5. Because
-  <a href="03-model-architecture.html">every strategy shares its pooling method and head
+  <a href="../03-model-architecture/">every strategy shares its pooling method and head
   architecture</a>, differences here are attributable to the fusion mechanism itself.</p>
 
   <h2>Kaplan-Meier risk stratification</h2>
   <p>For the best-performing survival model, the high/low risk groups from
-  <a href="06-postprocessing.html">post-processing</a> get their own survival curves — with
+  <a href="../06-postprocessing/">post-processing</a> get their own survival curves — with
   confidence bands and a log-rank test for whether the two groups are statistically distinguishable:</p>
   <pre><code>def km_with_ci(times, events, timeline):
     kmf = KaplanMeierFitter()
@@ -123,7 +123,7 @@ return captured["attn"][0].mean(dim=0).cpu().numpy()  # (N, N) over heads</code>
   </div>
 
   <div id="page-nav-root" class="page-nav"></div>
-  <script src="assets/pagenav.js" data-active="07"></script>
+  <script src="../assets/pagenav.js" data-base="../" data-active="07"></script>
 </main>
 
 <footer class="site-footer">

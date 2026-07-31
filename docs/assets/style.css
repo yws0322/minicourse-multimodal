@@ -33,13 +33,15 @@ a:hover { text-decoration: underline; }
 
 /* ---------- header / nav ---------- */
 
+:root { --sidebar-w: 270px; }
+
 header.site-header {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: var(--header-h);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 20px;
   z-index: 1000;
   background: rgba(255, 255, 255, 0.7);
@@ -50,51 +52,20 @@ header.site-header {
 }
 header.site-header.scrolled { border-bottom-color: var(--border); }
 
-.menu-btn {
-  background: none; border: none; cursor: pointer;
-  width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text);
-}
-.menu-btn span { display: block; width: 20px; height: 2px; background: var(--text); position: relative; }
-.menu-btn span::before, .menu-btn span::after {
-  content: ""; position: absolute; left: 0; width: 20px; height: 2px; background: var(--text);
-}
-.menu-btn span::before { top: -6px; }
-.menu-btn span::after { top: 6px; }
-
-.brand {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--text);
-  text-align: center;
-  flex: 1;
-}
-.brand:hover { text-decoration: none; color: var(--accent); }
-
 .header-links { display: flex; align-items: center; gap: 14px; }
 .header-links a { color: var(--text); font-size: 1rem; }
 .header-links a:hover { color: var(--accent); }
 
-/* drawer */
-.drawer-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.25);
-  opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 1100;
-}
-.drawer-backdrop.open { opacity: 1; pointer-events: auto; }
-
+/* sidebar — always open, not a toggled drawer */
 nav.drawer {
-  position: fixed; top: 0; left: 0; bottom: 0;
-  width: 270px;
+  position: fixed; top: var(--header-h); left: 0; bottom: 0;
+  width: var(--sidebar-w);
   background: var(--bg);
-  box-shadow: 2px 0 16px rgba(0,0,0,0.08);
-  transform: translateX(-100%);
-  transition: transform 0.25s ease;
-  z-index: 1200;
-  padding: 28px 0;
+  border-right: 1px solid var(--border);
+  z-index: 900;
+  padding: 24px 0;
   overflow-y: auto;
 }
-nav.drawer.open { transform: translateX(0); }
 
 nav.drawer .drawer-title {
   padding: 0 24px 16px;
@@ -114,12 +85,35 @@ nav.drawer li a:hover { background: var(--accent-soft); text-decoration: none; }
 nav.drawer li a.active { color: var(--accent); font-weight: 600; }
 nav.drawer li a .num { color: var(--text-soft); margin-right: 8px; }
 
+/* narrow viewports: sidebar drops into the normal document flow instead of
+   pinning to the left, so it stays visible without eating most of the width */
+@media (max-width: 900px) {
+  nav.drawer {
+    position: static;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    margin-top: var(--header-h);
+  }
+  nav.drawer ul { display: flex; flex-wrap: wrap; gap: 4px 6px; padding: 0 16px; }
+  nav.drawer li a { padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; }
+}
+
 /* ---------- layout ---------- */
 
 main {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: calc(var(--header-h) + 40px) 24px 80px;
+}
+
+@media (min-width: 901px) {
+  main { margin-left: var(--sidebar-w); margin-right: 0; padding-left: 40px; padding-right: 40px; }
+}
+
+@media (max-width: 900px) {
+  main { padding-top: 32px; }
 }
 
 .eyebrow {

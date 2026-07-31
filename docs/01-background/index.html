@@ -6,11 +6,11 @@
 <title>01 · Background — Multimodal Survival Prediction Minicourse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <div id="nav-root"></div>
-<script src="assets/nav.js" data-active="01"></script>
+<script src="../assets/nav.js" data-base="../" data-active="01"></script>
 
 <main>
   <div class="eyebrow">01 · Background</div>
@@ -64,7 +64,7 @@
   </ul>
 
   <figure class="fig">
-    <img src="assets/images/multimodal-fusion.png" alt="Diagram: disparate health data sources (medical imaging, demographics/lab values, clinical notes, time series, omics) feeding into early, intermediate, or late fusion models, producing clustering, regression, or classification outputs.">
+    <img src="../assets/images/multimodal-fusion.png" alt="Diagram: disparate health data sources (medical imaging, demographics/lab values, clinical notes, time series, omics) feeding into early, intermediate, or late fusion models, producing clustering, regression, or classification outputs.">
     <figcaption>Early, intermediate, and late fusion of multimodal health data.
     <span class="fig-source">Source: Kline et al., "Multimodal machine learning in precision health: A scoping review," <em>npj Digital Medicine</em> 5, 171 (2022). <a href="https://doi.org/10.1038/s41746-022-00712-8" target="_blank" rel="noopener">doi.org/10.1038/s41746-022-00712-8</a></span>
     </figcaption>
@@ -80,7 +80,7 @@
   <p><strong>Metrics:</strong> AUROC, Balanced Accuracy, F1.</p>
 
   <figure class="fig">
-    <img src="assets/images/glioma-classification-examples.png" alt="Three glioma cases (a, b, c), each showing an MRI slice and matching histopathology patch alongside molecular markers, mapped to a final WHO diagnosis: IDH-wildtype diffuse glioma WHO grade 3 NOS, WHO grade 2 NEC, and glioblastoma WHO grade 4.">
+    <img src="../assets/images/glioma-classification-examples.png" alt="Three glioma cases (a, b, c), each showing an MRI slice and matching histopathology patch alongside molecular markers, mapped to a final WHO diagnosis: IDH-wildtype diffuse glioma WHO grade 3 NOS, WHO grade 2 NEC, and glioblastoma WHO grade 4.">
     <figcaption>Imaging + histopathology + molecular markers → WHO glioma diagnosis.
     <span class="fig-source">Source: "The 2021 WHO Classification for Gliomas and Implications on Imaging Diagnosis: Part 1," <em>J. Magn. Reson. Imaging</em> 58(3), 677–689 (2023). <a href="https://doi.org/10.1002/jmri.28743" target="_blank" rel="noopener">doi.org/10.1002/jmri.28743</a> (CC BY-NC-ND 4.0)</span>
     </figcaption>
@@ -103,7 +103,7 @@
   </ul>
 
   <figure class="fig">
-    <img src="assets/images/censoring-types.png" alt="Diagram of five patients on a study timeline illustrating not censored, right censored, left censored, and interval censored event types.">
+    <img src="../assets/images/censoring-types.png" alt="Diagram of five patients on a study timeline illustrating not censored, right censored, left censored, and interval censored event types.">
     <figcaption>Censoring types: only patient 1 has a fully observed event time — the rest give partial information about how long they survived.</figcaption>
   </figure>
 
@@ -134,7 +134,7 @@
   <h2>What We Will Build</h2>
 
   <figure class="fig">
-    <img src="assets/images/what-we-will-build.png" alt="Diagram: Whole Slide Images, CT/MRI, and Clinical Data inputs each feeding a dedicated encoder (WSI, Radiology, Tabular), followed by Fusion and a Prediction Head, producing Disease Classification and Survival Prediction outputs.">
+    <img src="../assets/images/what-we-will-build.png" alt="Diagram: Whole Slide Images, CT/MRI, and Clinical Data inputs each feeding a dedicated encoder (WSI, Radiology, Tabular), followed by Fusion and a Prediction Head, producing Disease Classification and Survival Prediction outputs.">
     <figcaption>Input → per-modality encoder → fusion → prediction head → output.</figcaption>
   </figure>
 
@@ -157,7 +157,7 @@
   </div>
 
   <div id="page-nav-root" class="page-nav"></div>
-  <script src="assets/pagenav.js" data-active="01"></script>
+  <script src="../assets/pagenav.js" data-base="../" data-active="01"></script>
 </main>
 
 <footer class="site-footer">
