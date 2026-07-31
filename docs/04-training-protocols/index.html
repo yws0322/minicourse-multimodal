@@ -66,6 +66,77 @@
   follow-up time is first discretized into fixed-width bins, then a discrete-time negative
   log-likelihood loss scores the observed bin's likelihood — the event-hazard term if BCR
   occurred, the still-surviving term if the patient was censored.</p>
+
+  <h3>Discretizing the time axis</h3>
+  <p>The survival head doesn't regress a single number. It emits one logit per time bin — 15 of
+  them here — after the continuous follow-up time is bucketed into equal-width intervals spanning
+  <em>0</em> to the longest follow-up in the training set. Each logit, passed through a sigmoid,
+  is a <strong>discrete hazard</strong>: the conditional probability that recurrence happens in
+  that bin given the patient made it that far.</p>
+  <div class="formula-wrap">
+    <div class="formula">
+      <span><em>h</em><sub><em>i,k</em></sub> = &sigma;(<em>z</em><sub><em>i,k</em></sub>) = <em>P</em>(recurrence in bin <em>k</em> | survived past bin <em>k</em>&minus;1)</span>
+    </div>
+  </div>
+  <p>Chaining the per-bin survival probabilities gives the survival curve — the probability of
+  reaching the end of bin <em>k</em> event-free. That's the <code>cumprod</code> in the code, with
+  <em>S</em><sub><em>i</em>,0</sub> = 1 prepended (everyone is event-free before the first bin):</p>
+  <div class="formula-wrap">
+    <div class="formula">
+      <span><em>S</em><sub><em>i,k</em></sub> = &prod;<sub><em>j</em>=1</sub><sup><em>k</em></sup> (1 &minus; <em>h</em><sub><em>i,j</em></sub>)</span>
+    </div>
+  </div>
+
+  <h3>The loss</h3>
+  <p>With hazards and survival in hand, each patient contributes exactly one log-likelihood term,
+  and which term depends on whether their outcome was observed or censored:</p>
+  <div class="card">
+    <div class="formula-wrap">
+      <div class="formula">
+        <span><em>L</em><sub>NLL</sub> = &minus;</span>
+        <span class="frac">
+          <span class="frac-num">1</span>
+          <span class="frac-denom"><em>N</em></span>
+        </span>
+        <span>&sum;<sub><em>i</em>=1</sub><sup><em>N</em></sup> [ <em>e</em><sub><em>i</em></sub>(log <em>S</em><sub><em>i,y<sub>i</sub></em>&minus;1</sub> + log <em>h</em><sub><em>i,y<sub>i</sub></em></sub>) + (1 &minus; <em>e</em><sub><em>i</em></sub>) log <em>S</em><sub><em>i,y<sub>i</sub></em></sub> ]</span>
+      </div>
+    </div>
+    <p>where:</p>
+    <ul>
+      <li><em>N</em> is the number of rows in the batch (slide-level rows, not patients — see above)</li>
+      <li><em>y<sub>i</sub></em> is the discretized bin index of patient <em>i</em>'s event or censoring time</li>
+      <li><em>e<sub>i</sub></em> is the event indicator: 1 if BCR was observed, 0 if the patient was censored</li>
+      <li><em>h<sub>i,k</sub></em> is the predicted hazard for bin <em>k</em>, <em>S<sub>i,k</sub></em> the corresponding survival probability</li>
+    </ul>
+  </div>
+  <p>Reading the two terms:</p>
+  <ul>
+    <li><strong>Observed event</strong> (<em>e<sub>i</sub></em> = 1) — the likelihood of the event
+    landing exactly in bin <em>y<sub>i</sub></em>: survive every earlier bin
+    (<em>S</em><sub><em>i,y<sub>i</sub></em>&minus;1</sub>) <em>and then</em> fail in this one
+    (<em>h</em><sub><em>i,y<sub>i</sub></em></sub>).</li>
+    <li><strong>Censored</strong> (<em>e<sub>i</sub></em> = 0) — we only know the patient was still
+    event-free when we last saw them, so the likelihood is just
+    <em>S</em><sub><em>i,y<sub>i</sub></em></sub>: survived through bin <em>y<sub>i</sub></em>, with
+    no claim about what happened afterwards.</li>
+  </ul>
+  <p>That second term is the whole reason for using this loss instead of plain binary
+  cross-entropy. A censored patient is not a negative example — treating "no recurrence recorded
+  by month 40" as "no recurrence" throws away the fact that the observation simply stopped, and
+  biases the model optimistic. Here every censored patient still trains the model, just on a
+  weaker statement.</p>
+  <div class="callout">
+    <strong>Two implementation details</strong> that matter for stability. Bins are
+    <em>equal-width</em> over <em>[0, max training follow-up]</em>, not empirical quantiles — with
+    a ~95-patient cohort, quantile bins are noisy, and any time beyond the last edge is clamped
+    into the final bin. And every probability is clamped to a floor of 10<sup>&minus;7</sup>
+    before the logarithm, since a confidently-zero hazard or survival would otherwise send the
+    loss to infinity.
+  </div>
+  <p>At inference the same per-bin hazards become a single risk score by summing the survival
+  curve and negating it (<code>-survival.sum()</code>) — a longer expected event-free span means
+  lower risk. That scalar is what the C-index ranks, and what gets averaged across a patient's
+  slides in <a href="../05-inference/">Inference</a>.</p>
   <pre><code>def discretize_time(time, num_bins, max_time, device):
     """Bucket continuous follow-up time into `num_bins` equal-width bins."""
     bins = torch.linspace(0, max_time, num_bins + 1, device=device)
